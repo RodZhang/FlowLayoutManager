@@ -16,13 +16,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         recyclerView.layoutManager = FlowLayoutManager()
+        recyclerView.addItemDecoration(MyItemDecoration())
         recyclerView.adapter = TagAdapter(getData())
     }
 
     private fun getData(): List<String> {
-        val size = 40
         val prefixArr = arrayOf("aa", "bbbbbb", "ddddd")
-        return (0..40).map { "${prefixArr[it % prefixArr.size]}-$it" }
+        return (0 until 40).map { "${prefixArr[(Math.random() * prefixArr.size).toInt()]}-$it" }
     }
 
     inner class TagAdapter(val mData: List<String>) : RecyclerView.Adapter<TagAdapter.TagHolder>() {
