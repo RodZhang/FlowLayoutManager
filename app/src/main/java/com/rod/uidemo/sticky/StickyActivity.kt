@@ -1,11 +1,11 @@
-package com.rod.flowlayoutmanager.sticky
+package com.rod.uidemo.sticky
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.ListView
-import com.rod.flowlayoutmanager.common.DataFactory
+import com.rod.uidemo.common.DataFactory
 import org.jetbrains.anko.*
 
 /**

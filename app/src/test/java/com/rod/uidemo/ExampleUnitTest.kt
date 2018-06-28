@@ -1,4 +1,4 @@
-package com.rod.flowlayoutmanager
+package com.rod.uidemo
 
 import org.junit.Test
 

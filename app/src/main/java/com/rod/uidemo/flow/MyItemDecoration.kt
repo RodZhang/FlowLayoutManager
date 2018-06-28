@@ -1,4 +1,4 @@
-package com.rod.flowlayoutmanager.flow
+package com.rod.uidemo.flow
 
 import android.graphics.Rect
 import android.support.v7.widget.RecyclerView

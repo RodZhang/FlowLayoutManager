@@ -1,4 +1,4 @@
-package com.rod.flowlayoutmanager.common
+package com.rod.uidemo.common
 
 /**
  * No pains, no gains.

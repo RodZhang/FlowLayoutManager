@@ -1,12 +1,12 @@
-package com.rod.flowlayoutmanager
+package com.rod.uidemo
 
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.LinearLayout
-import com.rod.flowlayoutmanager.flow.FlowLayoutActivity
-import com.rod.flowlayoutmanager.sticky.StickyActivity
+import com.rod.uidemo.flow.FlowLayoutActivity
+import com.rod.uidemo.sticky.StickyActivity
 import org.jetbrains.anko.button
 import org.jetbrains.anko.scrollView
 import org.jetbrains.anko.sdk25.coroutines.onClick

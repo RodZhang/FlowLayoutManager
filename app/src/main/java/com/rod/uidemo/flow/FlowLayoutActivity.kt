@@ -1,4 +1,4 @@
-package com.rod.flowlayoutmanager.flow
+package com.rod.uidemo.flow
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -7,8 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import com.rod.flowlayoutmanager.R
-import com.rod.flowlayoutmanager.common.DataFactory
+import com.rod.uidemo.R
+import com.rod.uidemo.common.DataFactory
 import kotlinx.android.synthetic.main.activity_flowlayout.*
 
 class FlowLayoutActivity : AppCompatActivity() {

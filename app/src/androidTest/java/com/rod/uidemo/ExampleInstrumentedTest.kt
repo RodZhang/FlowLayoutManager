@@ -1,4 +1,4 @@
-package com.rod.flowlayoutmanager
+package com.rod.uidemo
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
