@@ -1,43 +1,37 @@
 package com.rod.flowlayoutmanager
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.TextView
-import kotlinx.android.synthetic.main.activity_main.*
+import android.widget.LinearLayout
+import com.rod.flowlayoutmanager.flow.FlowLayoutActivity
+import com.rod.flowlayoutmanager.sticky.StickyActivity
+import org.jetbrains.anko.button
+import org.jetbrains.anko.scrollView
+import org.jetbrains.anko.sdk25.coroutines.onClick
+import org.jetbrains.anko.verticalLayout
 
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        scrollView {
+            verticalLayout {
+                orientation = LinearLayout.VERTICAL
 
-        recyclerView.layoutManager = FlowLayoutManager()
-        recyclerView.addItemDecoration(MyItemDecoration())
-        recyclerView.adapter = TagAdapter(getData())
+                button("flowlayout") {
+                    onClick { simpleStartActivity(FlowLayoutActivity::class.java) }
+                }
+
+                button("sticky") {
+                    onClick { simpleStartActivity(StickyActivity::class.java) }
+                }
+            }
+        }
     }
 
-    private fun getData(): List<String> {
-        val prefixArr = arrayOf("aa", "bbbbbb", "ddddd")
-        return (0 until 40).map { "${prefixArr[(Math.random() * prefixArr.size).toInt()]}-$it" }
-    }
-
-    inner class TagAdapter(val mData: List<String>) : RecyclerView.Adapter<TagAdapter.TagHolder>() {
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TagHolder {
-            return TagHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_tag, parent, false))
-        }
-
-        override fun getItemCount() = mData.size
-
-        override fun onBindViewHolder(holder: TagHolder, position: Int) {
-            holder.mTagTv.text = mData[position]
-        }
-
-        inner class TagHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val mTagTv = view.findViewById<TextView>(R.id.tagText)
-        }
+    private fun simpleStartActivity(activityClass: Class<out Activity>) {
+        startActivity(Intent(this, activityClass))
     }
 }
