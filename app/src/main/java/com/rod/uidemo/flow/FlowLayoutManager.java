@@ -1,6 +1,7 @@
 package com.rod.uidemo.flow;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -10,6 +11,7 @@ import android.view.ViewGroup;
  * Created by Rod on 2018/6/25.
  */
 public class FlowLayoutManager extends RecyclerView.LayoutManager {
+    private static final String TAG = "FlowLayoutManager";
 
     @Override
     public RecyclerView.LayoutParams generateDefaultLayoutParams() {
@@ -33,6 +35,7 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
             return;
         }
         detachAndScrapAttachedViews(recycler);
+        int horizontalSpace = getWidth() - getPaddingLeft() - getPaddingRight();
 
         View child;
         int startX = getPaddingLeft();
@@ -41,14 +44,13 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
             child = recycler.getViewForPosition(i);
             addView(child);
             measureChildWithMargins(child, 0, 0);
-            if (startX + getDecoratedMeasuredWidth(child) > getWidth() - getPaddingLeft() - getPaddingRight()) {
+            if (startX + getDecoratedMeasuredWidth(child) > horizontalSpace) {
                 startX = getPaddingLeft();
                 startY += getDecoratedMeasuredHeight(child);
-                layoutDecoratedWithMargins(child, startX, startY, startX + getDecoratedMeasuredWidth(child), startY + getDecoratedMeasuredHeight(child));
-            } else {
-                layoutDecoratedWithMargins(child, startX, startY, startX + getDecoratedMeasuredWidth(child), startY + getDecoratedMeasuredHeight(child));
-                startX += getDecoratedMeasuredWidth(child);
             }
+            layoutDecoratedWithMargins(child, startX, startY, startX + getDecoratedMeasuredWidth(child), startY + getDecoratedMeasuredHeight(child));
+            Log.d(TAG, "startX=" + startX + ", startY=" + startY);
+            startX += getDecoratedMeasuredWidth(child);
         }
     }
 }

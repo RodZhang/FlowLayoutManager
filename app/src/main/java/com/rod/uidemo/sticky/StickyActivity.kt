@@ -29,9 +29,8 @@ class StickyActivity : AppCompatActivity() {
                 adapter = ArrayAdapter<String>(this@StickyActivity, android.R.layout.simple_list_item_1, android.R.id.text1, DataFactory.getStringList(50))
             }
 
-            mStickyContainer = linearLayout {
+            mStickyContainer = verticalLayout {
                 lparams(matchParent, wrapContent)
-                orientation = LinearLayout.VERTICAL
             }
         }
     }
