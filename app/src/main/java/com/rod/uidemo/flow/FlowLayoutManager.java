@@ -31,12 +31,34 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
 
     @Override
     public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
-
-        recycle(dy, recycler);
-        offsetChildrenVertical(-dy);
-        mScrollOffset += dy;
+        dy = fixDy(dy);
+        if (dy != 0) {
+            recycle(dy, recycler);
+            offsetChildrenVertical(-dy);
+            mScrollOffset += dy;
+        }
         log("scrollVerticallyBy, dy=%d, mScrollOffset=%d", dy, mScrollOffset);
         return dy;
+    }
+
+    private int fixDy(int dy) {
+        if (mScrollOffset + dy <= 0) {
+            return -mScrollOffset;
+        }
+
+        if (getChildCount() == 0) {
+            return 0;
+        }
+
+        final View lastView = getChildAt(getChildCount() - 1);
+        final int lastViewBottom = getDecoratedBottom(lastView);
+        final int recyclerViewHeight = getHeight();
+        if (lastViewBottom >= recyclerViewHeight + mScrollOffset + dy) {
+            // 最后一个item完全可见了
+            return lastViewBottom - recyclerViewHeight - mScrollOffset;
+        } else {
+            return dy;
+        }
     }
 
     private void recycle(int dy, RecyclerView.Recycler recycler) {
