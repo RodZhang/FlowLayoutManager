@@ -31,33 +31,45 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
 
     @Override
     public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
+        if (state.isPreLayout()) {
+            return 0;
+        }
         dy = fixDy(dy);
+        log("scrollVerticallyBy, dy=%d, mScrollOffset=%d", dy, mScrollOffset);
         if (dy != 0) {
-            recycle(dy, recycler);
+//            recycle(dy, recycler);
+            fill(dy, recycler);
             offsetChildrenVertical(-dy);
             mScrollOffset += dy;
         }
-        log("scrollVerticallyBy, dy=%d, mScrollOffset=%d", dy, mScrollOffset);
         return dy;
     }
 
     private int fixDy(int dy) {
-        if (mScrollOffset + dy <= 0) {
-            return -mScrollOffset;
-        }
-
         if (getChildCount() == 0) {
             return 0;
         }
 
-        final View lastView = getChildAt(getChildCount() - 1);
-        final int lastViewBottom = getDecoratedBottom(lastView);
-        final int recyclerViewHeight = getHeight();
-        if (lastViewBottom >= recyclerViewHeight + mScrollOffset + dy) {
-            // 最后一个item完全可见了
-            return lastViewBottom - recyclerViewHeight - mScrollOffset;
+        if (dy < 0) {
+            if (mScrollOffset + dy <= 0) {
+                return -mScrollOffset;
+            } else {
+                return dy;
+            }
         } else {
-            return dy;
+            final View lastView = getChildAt(getChildCount() - 1);
+            if (getPosition(lastView) == getItemCount() - 1) {
+                final int lastViewBottom = getDecoratedBottom(lastView);
+                final int recyclerViewHeight = getHeight();
+                if (lastViewBottom - dy <= recyclerViewHeight) {
+                    // 最后一个item完全可见了
+                    return lastViewBottom - recyclerViewHeight;
+                } else {
+                    return dy;
+                }
+            } else {
+                return dy;
+            }
         }
     }
 
@@ -78,6 +90,35 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
                     removeAndRecycleViews(recycler, 0, i);
                     return;
                 }
+            }
+        }
+    }
+
+    private void fill(int dy, RecyclerView.Recycler recycler) {
+        if (dy < 0) {
+            // 手指从上往下滑动
+
+        } else if (dy > 0) {
+            // 手指从下往上滑动
+            View lastChild = getChildAt(getChildCount() - 1);
+            int newBottom = getDecoratedBottom(lastChild) + dy;
+            View itemView;
+            int startX = getPaddingLeft();
+            int startY = getDecoratedBottom(lastChild);
+            for (int i = getPosition(lastChild) + 1, size = getItemCount(); i < size; i++) {
+                itemView = recycler.getViewForPosition(i);
+                addView(itemView);
+                measureChildWithMargins(itemView, 0, 0);
+                if (startX + getDecoratedMeasuredWidth(itemView) > mHorizontalSpace) {
+                    startX = getPaddingLeft();
+                    startY += getDecoratedMeasuredHeight(itemView);
+                    if (startY > newBottom) {
+                        detachAndScrapView(itemView, recycler);
+                        break;
+                    }
+                }
+                layoutDecoratedWithMargins(itemView, startX, startY, startX + getDecoratedMeasuredWidth(itemView), startY + getDecoratedMeasuredHeight(itemView));
+                startX += getDecoratedMeasuredWidth(itemView);
             }
         }
     }
@@ -126,7 +167,6 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
                 }
             }
             layoutDecoratedWithMargins(itemView, startX, startY, startX + getDecoratedMeasuredWidth(itemView), startY + getDecoratedMeasuredHeight(itemView));
-            Log.d(TAG, "startX=" + startX + ", startY=" + startY);
             log("index=%d, startX=%d, startY=%d", i, startX, startY);
             startX += getDecoratedMeasuredWidth(itemView);
 

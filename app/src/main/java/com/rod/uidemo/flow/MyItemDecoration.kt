@@ -15,7 +15,8 @@ class MyItemDecoration : RecyclerView.ItemDecoration() {
         outRect?.let {
             outRect.left = 20
             outRect.right = 20
-            outRect.top = 40
+            outRect.top = 20
+            outRect.bottom = 20
         }
     }
 }
