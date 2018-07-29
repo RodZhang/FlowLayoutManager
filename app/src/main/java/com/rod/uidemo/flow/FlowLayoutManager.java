@@ -1,10 +1,15 @@
 package com.rod.uidemo.flow;
 
+import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.rod.uidemo.UL;
+
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -17,6 +22,7 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
     private int mHorizontalSpace;
     private int mVerticalSpace;
     private int mScrollOffset;
+    private SparseArray<Rect> mViewRectArr = new SparseArray<>();
 
     @Override
     public RecyclerView.LayoutParams generateDefaultLayoutParams() {
@@ -97,14 +103,34 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
     private void fill(int dy, RecyclerView.Recycler recycler) {
         if (dy < 0) {
             // 手指从上往下滑动
-
+//            View firstChild = getChildAt(0);
+//            int startY = getDecoratedTop(firstChild);
+//            int newTop = startY + dy;
+//            int startX = getPaddingLeft();
+//
+//            int startPos = getPosition(firstChild) - 1;
+//            View itemView;
+//            Rect viewRect;
+//            while (newTop < 0 && startPos >= 0) {
+//                itemView = recycler.getViewForPosition(startPos);
+//                addView(itemView);
+//                measureChildWithMargins(itemView, 0, 0);
+//                viewRect = mViewRectArr.get(startPos);
+//                layoutDecoratedWithMargins(itemView, viewRect.left, viewRect.top - mScrollOffset, viewRect.right, viewRect.bottom - mScrollOffset);
+//                startPos--;
+//            }
         } else if (dy > 0) {
             // 手指从下往上滑动
-            View lastChild = getChildAt(getChildCount() - 1);
-            int newBottom = getDecoratedBottom(lastChild) + dy;
             View itemView;
             int startX = getPaddingLeft();
+            View lastChild = getChildAt(getChildCount() - 1);
             int startY = getDecoratedBottom(lastChild);
+            int newBottom = startY + dy;
+            if (startY - dy > getHeight()) {
+                // 说明滑动dy后，最后一行还没有完全显示，因此不需要绘制展示后面的数据
+                return;
+            }
+            UL.INSTANCE.d(TAG, "startY=%d, newBottom=%d, dy=%d, startPos=%d", startY, newBottom, dy, getPosition(lastChild));
             for (int i = getPosition(lastChild) + 1, size = getItemCount(); i < size; i++) {
                 itemView = recycler.getViewForPosition(i);
                 addView(itemView);
@@ -112,12 +138,19 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
                 if (startX + getDecoratedMeasuredWidth(itemView) > mHorizontalSpace) {
                     startX = getPaddingLeft();
                     startY += getDecoratedMeasuredHeight(itemView);
+                    UL.INSTANCE.d(TAG, "startY=%d, newBottom=%d, dy=%d, pos=%d", startY, newBottom, dy, i);
                     if (startY > newBottom) {
                         detachAndScrapView(itemView, recycler);
                         break;
                     }
                 }
-                layoutDecoratedWithMargins(itemView, startX, startY, startX + getDecoratedMeasuredWidth(itemView), startY + getDecoratedMeasuredHeight(itemView));
+                int left = startX;
+                int top = startY;
+                int right = startX + getDecoratedMeasuredWidth(itemView);
+                int bottom = startY + getDecoratedMeasuredHeight(itemView);
+                Rect rect = new Rect(left, top + mScrollOffset, right, bottom + mScrollOffset);
+                mViewRectArr.put(i, rect);
+                layoutDecoratedWithMargins(itemView, left, top, right, bottom);
                 startX += getDecoratedMeasuredWidth(itemView);
             }
         }
@@ -144,6 +177,7 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
         if (state.getItemCount() == 0 || state.isPreLayout()) {
             return;
         }
+        mViewRectArr.clear();
         detachAndScrapAttachedViews(recycler);
 
         mHorizontalSpace = getWidth() - getPaddingLeft() - getPaddingRight();
@@ -153,6 +187,8 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
         View itemView;
         int startX = getPaddingLeft();
         int startY = getPaddingTop();
+        int rowIndex = 0, columnCount = 0;
+        List<Integer> dataIndex;
         for (int i = 0, size = state.getItemCount(); i < size; i++) {
             itemView = recycler.getViewForPosition(i);
             addView(itemView);
@@ -160,16 +196,24 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
             if (startX + getDecoratedMeasuredWidth(itemView) > mHorizontalSpace) {
                 startX = getPaddingLeft();
                 startY += getDecoratedMeasuredHeight(itemView);
+                rowIndex++;
+                columnCount = 0;
                 if (startY > mVerticalSpace) {
                     detachAndScrapView(itemView, recycler);
                     log("index=%d, startY(%d) > mVerticalSpace(%d), end", i, startY, mVerticalSpace);
                     break;
                 }
             }
-            layoutDecoratedWithMargins(itemView, startX, startY, startX + getDecoratedMeasuredWidth(itemView), startY + getDecoratedMeasuredHeight(itemView));
+            int left = startX;
+            int top = startY;
+            int right = startX + getDecoratedMeasuredWidth(itemView);
+            int bottom = startY + getDecoratedMeasuredHeight(itemView);
+            Rect rect = new Rect(left, top, right, bottom);
+            mViewRectArr.put(i, rect);
+            layoutDecoratedWithMargins(itemView, left, top, right, bottom);
             log("index=%d, startX=%d, startY=%d", i, startX, startY);
             startX += getDecoratedMeasuredWidth(itemView);
-
+            columnCount++;
         }
     }
 
