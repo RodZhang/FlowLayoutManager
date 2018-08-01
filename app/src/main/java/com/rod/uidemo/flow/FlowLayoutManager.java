@@ -82,6 +82,7 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
     private void recycle(int dy, RecyclerView.Recycler recycler) {
         View childView;
         if (dy < 0) {
+            // 手指从上往下滑动
             int removeCount = 0;
             for (int i = getChildCount() - 1; i >= 0; i--) {
                 childView = getChildAt(i);
@@ -90,6 +91,9 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
                 } else {
                     break;
                 }
+            }
+            if (removeCount == getChildCount()) {
+                removeCount--;
             }
             if (removeCount > 0) {
                 UL.Companion.d(TAG, "removeCount=%d, startIndex=%d, endIndex=%d", removeCount, getChildCount() - 1, getChildCount() - 1 - removeCount);
@@ -116,6 +120,10 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
         if (dy < 0) {
             // 手指从上往下滑动
             View firstChild = getChildAt(0);
+            if (firstChild == null) {
+                UL.Companion.d(TAG, "firstChild=null");
+                return;
+            }
             int newTop = getDecoratedTop(firstChild) - dy;
             if (newTop < 0) {
                 // 说明滑动dy后，当前第一行仍没有完全展示，因此不用加载之前的数据
@@ -127,7 +135,8 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
                 return;
             }
 
-            int viewBottom = mViewRectArr.get(startPos).bottom + mScrollOffset + Math.abs(dy);
+            int offset = Math.abs(mScrollOffset);
+            int viewBottom = mViewRectArr.get(startPos).bottom - offset;
             View itemView;
             Rect viewRect;
             while (startPos >= 0) {
@@ -135,9 +144,9 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
                 addView(itemView, 0);
                 measureChildWithMargins(itemView, 0, 0);
                 viewRect = mViewRectArr.get(startPos);
-                int newViewBottom = viewRect.bottom + + mScrollOffset + Math.abs(dy);
+                int newViewBottom = viewRect.bottom - offset;
                 if (viewBottom == newViewBottom || newViewBottom > 0) {
-                    layoutDecoratedWithMargins(itemView, viewRect.left, viewRect.top + + mScrollOffset + Math.abs(dy), viewRect.right, newViewBottom);
+                    layoutDecoratedWithMargins(itemView, viewRect.left, viewRect.top - offset, viewRect.right, newViewBottom);
                     UL.Companion.d(TAG, "fill to top, pos=%d", startPos);
                     startPos--;
                     viewBottom = newViewBottom;
@@ -148,38 +157,38 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
             }
         } else if (dy > 0) {
             // 手指从下往上滑动
-//            View itemView;
-//            int startX = getPaddingLeft();
-//            View lastChild = getChildAt(getChildCount() - 1);
-//            int startY = getDecoratedBottom(lastChild);
-//            int newBottom = startY + dy;
-//            if (startY - dy > getHeight()) {
-//                // 说明滑动dy后，最后一行还没有完全显示，因此不需要绘制展示后面的数据
-//                return;
-//            }
-//            UL.INSTANCE.d(TAG, "startY=%d, newBottom=%d, dy=%d, startPos=%d", startY, newBottom, dy, getPosition(lastChild));
-//            for (int i = getPosition(lastChild) + 1, size = getItemCount(); i < size; i++) {
-//                itemView = recycler.getViewForPosition(i);
-//                addView(itemView);
-//                measureChildWithMargins(itemView, 0, 0);
-//                if (startX + getDecoratedMeasuredWidth(itemView) > mHorizontalSpace) {
-//                    startX = getPaddingLeft();
-//                    startY += getDecoratedMeasuredHeight(itemView);
-//                    UL.INSTANCE.d(TAG, "startY=%d, newBottom=%d, dy=%d, pos=%d", startY, newBottom, dy, i);
-//                    if (startY > newBottom) {
-//                        detachAndScrapView(itemView, recycler);
-//                        break;
-//                    }
-//                }
-//                int left = startX;
-//                int top = startY;
-//                int right = startX + getDecoratedMeasuredWidth(itemView);
-//                int bottom = startY + getDecoratedMeasuredHeight(itemView);
-//                Rect rect = new Rect(left, top + mScrollOffset, right, bottom + mScrollOffset);
-//                mViewRectArr.put(i, rect);
-//                layoutDecoratedWithMargins(itemView, left, top, right, bottom);
-//                startX += getDecoratedMeasuredWidth(itemView);
-//            }
+            View itemView;
+            int startX = getPaddingLeft();
+            View lastChild = getChildAt(getChildCount() - 1);
+            int startY = getDecoratedBottom(lastChild);
+            int newBottom = startY + dy;
+            if (startY - dy > getHeight()) {
+                // 说明滑动dy后，最后一行还没有完全显示，因此不需要绘制展示后面的数据
+                return;
+            }
+            UL.Companion.d(TAG, "startY=%d, newBottom=%d, dy=%d, startPos=%d", startY, newBottom, dy, getPosition(lastChild));
+            for (int i = getPosition(lastChild) + 1, size = getItemCount(); i < size; i++) {
+                itemView = recycler.getViewForPosition(i);
+                addView(itemView);
+                measureChildWithMargins(itemView, 0, 0);
+                if (startX + getDecoratedMeasuredWidth(itemView) > mHorizontalSpace) {
+                    startX = getPaddingLeft();
+                    startY += getDecoratedMeasuredHeight(itemView);
+                    UL.Companion.d(TAG, "startY=%d, newBottom=%d, dy=%d, pos=%d", startY, newBottom, dy, i);
+                    if (startY > newBottom) {
+                        detachAndScrapView(itemView, recycler);
+                        break;
+                    }
+                }
+                int left = startX;
+                int top = startY;
+                int right = startX + getDecoratedMeasuredWidth(itemView);
+                int bottom = startY + getDecoratedMeasuredHeight(itemView);
+                Rect rect = new Rect(left, top + mScrollOffset, right, bottom + mScrollOffset);
+                mViewRectArr.put(i, rect);
+                layoutDecoratedWithMargins(itemView, left, top, right, bottom);
+                startX += getDecoratedMeasuredWidth(itemView);
+            }
         }
     }
 
