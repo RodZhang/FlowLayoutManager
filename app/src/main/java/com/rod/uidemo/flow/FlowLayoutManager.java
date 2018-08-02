@@ -37,14 +37,14 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
 
     @Override
     public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        if (state.isPreLayout()) {
+        if (state.isPreLayout() || dy == 0 || getChildCount() == 0) {
             return 0;
         }
         dy = fixDy(dy);
         log("scrollVerticallyBy, dy=%d, mScrollOffset=%d", dy, mScrollOffset);
         if (dy != 0) {
             recycle(dy, recycler);
-            fill(dy, recycler);
+            fillChunk(dy, recycler);
             offsetChildrenVertical(-dy);
             mScrollOffset += dy;
         }
@@ -52,27 +52,33 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
     }
 
     private int fixDy(int dy) {
-        if (getChildCount() == 0) {
-            return 0;
+        return dy < 0 ? fixDyScrollToDown(dy) : fixDyScrollToUp(dy);
+    }
+
+    private int fixDyScrollToDown(int dy) {
+        return (mScrollOffset + dy < 0) ? -mScrollOffset : dy;
+    }
+
+    private int fixDyScrollToUp(int dy) {
+        if (mViewRectArr.size() == getItemCount()) {
+            int lastViewBottom = mViewRectArr.get(getItemCount() - 1).bottom;
+            return lastViewBottom - mScrollOffset - dy < getHeight()
+                    ? lastViewBottom - mScrollOffset - getHeight()
+                    : dy;
         }
 
-        if (dy < 0) {
-            if (mScrollOffset + dy <= 0) {
-                return -mScrollOffset;
+        final View lastView = getChildAt(getChildCount() - 1);
+        final int lastViewIndex = getPosition(lastView);
+        final int viewBottom = getDecoratedBottom(lastView);
+        if (lastViewIndex == getItemCount() - 1) {
+            if (viewBottom - dy < getHeight()) {
+                return viewBottom - getHeight();
             } else {
                 return dy;
             }
         } else {
-            final View lastView = getChildAt(getChildCount() - 1);
-            if (getPosition(lastView) == getItemCount() - 1) {
-                final int lastViewBottom = getDecoratedBottom(lastView);
-                final int recyclerViewHeight = getHeight();
-                if (lastViewBottom - dy <= recyclerViewHeight) {
-                    // 最后一个item完全可见了
-                    return lastViewBottom - recyclerViewHeight;
-                } else {
-                    return dy;
-                }
+            if (viewBottom - dy < 0) {
+                return viewBottom;
             } else {
                 return dy;
             }
@@ -84,54 +90,48 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
         if (dy < 0) {
             // 手指从上往下滑动
             int removeCount = 0;
-            for (int i = getChildCount() - 1; i >= 0; i--) {
+            for (int i = getChildCount() - 1; i > 0; i--) {
                 childView = getChildAt(i);
-                if (getDecoratedTop(childView) + Math.abs(dy) >= getHeight()) {
+                if (getDecoratedTop(childView) + Math.abs(dy) > getHeight()) {
                     removeCount++;
                 } else {
                     break;
                 }
             }
-            if (removeCount == getChildCount()) {
-                removeCount--;
-            }
             if (removeCount > 0) {
-                UL.Companion.d(TAG, "removeCount=%d, startIndex=%d, endIndex=%d", removeCount, getChildCount() - 1, getChildCount() - 1 - removeCount);
+                UL.Companion.d(TAG, "up to down, removeCount=%d, startIndex=%d, endIndex=%d, childCount=%d", removeCount, getChildCount() - 1, getChildCount() - 1 - removeCount, getChildCount());
                 removeAndRecycleViews(recycler, getChildCount() - 1, getChildCount() - 1 - removeCount);
             }
         } else if (dy > 0) {
             int removeCount = 0;
             for (int i = 0, count = getChildCount(); i < count; i++) {
                 childView = getChildAt(i);
-                if (getDecoratedBottom(childView) - dy <= 0) {
+                if (getDecoratedBottom(childView) - dy < 0) {
                     removeCount++;
                 } else {
                     break;
                 }
             }
             if (removeCount > 0) {
-                UL.Companion.d(TAG, "removeCount=%d, startIndex=0, endIndex=%d", removeCount, removeCount);
+                UL.Companion.d(TAG, "down to up, removeCount=%d, startIndex=0, endIndex=%d, childCount=%d", removeCount, removeCount, getChildCount());
                 removeAndRecycleViews(recycler, 0, removeCount);
             }
         }
     }
 
-    private void fill(int dy, RecyclerView.Recycler recycler) {
+    private void fillChunk(int dy, RecyclerView.Recycler recycler) {
         if (dy < 0) {
             // 手指从上往下滑动
             View firstChild = getChildAt(0);
-            if (firstChild == null) {
-                UL.Companion.d(TAG, "firstChild=null");
-                return;
-            }
-            int newTop = getDecoratedTop(firstChild) - dy;
-            if (newTop < 0) {
+            if (getDecoratedTop(firstChild) - dy < 0) {
                 // 说明滑动dy后，当前第一行仍没有完全展示，因此不用加载之前的数据
+                UL.Companion.d(TAG, "getDecoratedTop(firstChild) - dy < 0");
                 return;
             }
             int indexOfFirstChild = getPosition(firstChild);
             int startPos = indexOfFirstChild - 1;
             if (startPos < 0) {
+                UL.Companion.d(TAG, "startPos=%d", startPos);
                 return;
             }
 
@@ -147,7 +147,7 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
                 int newViewBottom = viewRect.bottom - offset;
                 if (viewBottom == newViewBottom || newViewBottom > 0) {
                     layoutDecoratedWithMargins(itemView, viewRect.left, viewRect.top - offset, viewRect.right, newViewBottom);
-                    UL.Companion.d(TAG, "fill to top, pos=%d", startPos);
+                    UL.Companion.d(TAG, "fillChunk to top, pos=%d", startPos);
                     startPos--;
                     viewBottom = newViewBottom;
                 } else {
@@ -160,13 +160,14 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
             View itemView;
             int startX = getPaddingLeft();
             View lastChild = getChildAt(getChildCount() - 1);
+            // TODO: 2018/8/1 Null check
             int startY = getDecoratedBottom(lastChild);
             int newBottom = startY + dy;
             if (startY - dy > getHeight()) {
                 // 说明滑动dy后，最后一行还没有完全显示，因此不需要绘制展示后面的数据
                 return;
             }
-            UL.Companion.d(TAG, "startY=%d, newBottom=%d, dy=%d, startPos=%d", startY, newBottom, dy, getPosition(lastChild));
+            UL.Companion.d(TAG, "startY=%d, newBottom=%d, dy=%d, startPos=%d, childCount=%d", startY, newBottom, dy, getPosition(lastChild), getChildCount());
             for (int i = getPosition(lastChild) + 1, size = getItemCount(); i < size; i++) {
                 itemView = recycler.getViewForPosition(i);
                 addView(itemView);
@@ -174,7 +175,7 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
                 if (startX + getDecoratedMeasuredWidth(itemView) > mHorizontalSpace) {
                     startX = getPaddingLeft();
                     startY += getDecoratedMeasuredHeight(itemView);
-                    UL.Companion.d(TAG, "startY=%d, newBottom=%d, dy=%d, pos=%d", startY, newBottom, dy, i);
+                    UL.Companion.d(TAG, "startY=%d, newBottom=%d, dy=%d, pos=%d, childCount=%d", startY, newBottom, dy, i, getChildCount());
                     if (startY > newBottom) {
                         detachAndScrapView(itemView, recycler);
                         break;
