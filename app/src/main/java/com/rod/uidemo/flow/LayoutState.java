@@ -32,13 +32,13 @@ final class LayoutState {
     int mXOffset;
     int mYOffset;
     /**
+     * 当次滑动的距离
+     */
+    int mAbsDy;
+    /**
      * 是否需要回收view，当滑动时要回收被滑出屏幕的view
      */
     boolean mNeedRecycle;
-    /**
-     * 是否已结束
-     */
-    boolean mIsFinished;
     int mLeftBounds;
     int mTopBounds;
     int mRightBounds;
