@@ -21,7 +21,7 @@ class FlowLayoutActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_flowlayout)
 
-        recyclerView.layoutManager = FlowLayoutManager()
+        recyclerView.layoutManager = FlowLayoutManager2()
         recyclerView.addItemDecoration(MyItemDecoration())
         recyclerView.adapter = TagAdapter(DataFactory.getStringList(100))
     }

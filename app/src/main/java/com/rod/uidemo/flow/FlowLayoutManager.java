@@ -18,7 +18,7 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
     private static final String TAG = "FlowLayoutManager";
 
     private final LayoutState mLayoutState = new LayoutState();
-    private final PositionRecoder mPositionRecoder = new PositionRecoder();
+    private final ItemRecoder mItemRecoder = new ItemRecoder();
 
     @Override
     public RecyclerView.LayoutParams generateDefaultLayoutParams() {
@@ -134,7 +134,7 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
             }
             int lastViewIndex = getPosition(lastChild);
             log(TAG, "startY=%d, newBottom=%d, dy=%d, startPos=%d, childCount=%d", startY, newBottom, mLayoutState.mAbsDy, lastViewIndex, getChildCount());
-            int rowIndex = mPositionRecoder.getRowIndex(lastViewIndex) + 1;
+//            int rowIndex = mItemRecoder.getRowIndex(lastViewIndex) + 1;
             for (int i = lastViewIndex + 1, size = getItemCount(); i < size; i++) {
                 itemView = recycler.getViewForPosition(i);
                 addView(itemView);
@@ -142,14 +142,14 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
                 if (startX + getDecoratedMeasuredWidth(itemView) > mLayoutState.mRightBounds) {
                     startX = getPaddingLeft();
                     startY += getDecoratedMeasuredHeight(itemView);
-                    rowIndex++;
+//                    rowIndex++;
                     log(TAG, "startY=%d, newBottom=%d, dy=%d, pos=%d, childCount=%d", startY, newBottom, mLayoutState.mAbsDy, i, getChildCount());
                     if (startY > newBottom) {
                         detachAndScrapView(itemView, recycler);
                         break;
                     }
                 }
-                mPositionRecoder.update(rowIndex, i);
+//                mItemRecoder.update(rowIndex, i);
                 int left = startX;
                 int top = startY;
                 int right = startX + getDecoratedMeasuredWidth(itemView);
@@ -215,7 +215,7 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
         if (state.getItemCount() == 0 || state.isPreLayout()) {
             return;
         }
-        mPositionRecoder.clear();
+        mItemRecoder.clear();
         detachAndScrapAttachedViews(recycler);
 
         mLayoutState.mScrollOffset = 0;
@@ -240,7 +240,7 @@ public class FlowLayoutManager extends RecyclerView.LayoutManager {
                 }
             }
 
-            mPositionRecoder.update(rowIndex, i);
+//            mItemRecoder.update(rowIndex, i);
             int left = startX;
             int top = startY;
             int right = startX + getDecoratedMeasuredWidth(itemView);

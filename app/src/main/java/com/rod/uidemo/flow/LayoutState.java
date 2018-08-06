@@ -26,6 +26,10 @@ final class LayoutState {
      */
     int mCurrentItemPos;
     /**
+     * 当前填充的行下标
+     */
+    int mCurrentRowIndex;
+    /**
      * 当前滑动的偏移量
      */
     int mScrollOffset;
@@ -36,6 +40,10 @@ final class LayoutState {
      */
     int mAbsDy;
     /**
+     * 可用于填充的空间
+     */
+    int mRemainSpace;
+    /**
      * 是否需要回收view，当滑动时要回收被滑出屏幕的view
      */
     boolean mNeedRecycle;
@@ -44,11 +52,11 @@ final class LayoutState {
     int mRightBounds;
     int mBottomBounds;
 
-    void updateBounds(int left, int top, int right, int bottom) {
-        UL.Companion.d(TAG, "updateBounds, left=%d, top=%d, right=%d, bottom=%d", left, top, right, bottom);
-        mLeftBounds = left;
-        mTopBounds = top;
-        mRightBounds = right;
-        mBottomBounds = bottom;
+    void updateBounds(int leftBounds, int topBounds, int rightBounds, int bottomBounds) {
+        UL.Companion.d(TAG, "updateBounds, leftBounds=%d, topBounds=%d, rightBounds=%d, bottomBounds=%d", leftBounds, topBounds, rightBounds, bottomBounds);
+        mLeftBounds = leftBounds;
+        mTopBounds = topBounds;
+        mRightBounds = rightBounds;
+        mBottomBounds = bottomBounds;
     }
 }
