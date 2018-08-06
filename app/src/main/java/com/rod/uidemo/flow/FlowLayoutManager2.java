@@ -1,10 +1,13 @@
 package com.rod.uidemo.flow;
 
+import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.rod.uidemo.UL;
+
+import java.util.List;
 
 /**
  * @author Rod
@@ -129,8 +132,10 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
     }
 
     private void fillToTail(RecyclerView.Recycler recycler) {
+        UL.Companion.d(TAG, "fillToTail, out loop, mRemainSpace=%d", mLayoutState.mRemainSpace);
         while (mLayoutState.mRemainSpace > 0 && mLayoutState.mCurrentItemPos < getItemCount()) {
             mLayoutState.mRemainSpace -= fillRowToTail(recycler);
+            UL.Companion.d(TAG, "fillToTail, mRemainSpace=%d", mLayoutState.mRemainSpace);
         }
     }
 
@@ -138,13 +143,14 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
         if (mLayoutState.mCurrentItemPos >= getItemCount()) {
             return 0;
         }
-        ItemInfo itemInfo = mItemRecoder.getItemInfo(mLayoutState.mCurrentRowIndex);
-        int consumed = itemInfo == null ? fillRowToTailWithNew(recycler) : fillRowToTailWithCache(recycler);
+        ItemInfo itemInfo = mItemRecoder.getItemInfo(mLayoutState.mCurrentItemPos);
+        int consumed = itemInfo == null ? fillRowToTailWithNew(recycler) : fillRowToTailWithCache(recycler, itemInfo.mRowIndex);
         mLayoutState.mYOffset += consumed;
         return consumed;
     }
 
     private int fillRowToTailWithNew(RecyclerView.Recycler recycler) {
+        UL.Companion.d(TAG, "fillRowToTailWithNew");
         int startX = mLayoutState.mLeftBounds;
         View view = recycler.getViewForPosition(mLayoutState.mCurrentItemPos);
         addView(view);
@@ -155,11 +161,15 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
             layoutDecoratedWithMargins(view, mLayoutState.mLeftBounds, mLayoutState.mYOffset, mLayoutState.mRightBounds, mLayoutState.mYOffset + viewHeight);
             mLayoutState.mCurrentItemPos++;
             mLayoutState.mCurrentRowIndex++;
+
+            addItemInfo(startX, mLayoutState.mRightBounds, viewHeight);
             return viewHeight;
         }
 
         int newStartX = startX + viewWidth;
         layoutDecoratedWithMargins(view, startX, mLayoutState.mYOffset, startX + viewWidth, mLayoutState.mYOffset + viewHeight);
+
+        addItemInfo(startX, newStartX, viewHeight);
         mLayoutState.mCurrentItemPos++;
         startX = newStartX;
 
@@ -176,6 +186,8 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
             }
 
             viewHeight = getDecoratedMeasuredHeight(view);
+            addItemInfo(startX, newStartX, viewHeight);
+
             layoutDecoratedWithMargins(view, startX, mLayoutState.mYOffset, newStartX, mLayoutState.mYOffset + viewHeight);
             maxHeight = Math.max(maxHeight, viewHeight);
             mLayoutState.mCurrentItemPos++;
@@ -185,8 +197,28 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
         return maxHeight;
     }
 
-    private int fillRowToTailWithCache(RecyclerView.Recycler recycler) {
-        return 0;
+    private void addItemInfo(int startX, int newStartX, int viewHeight) {
+        Rect rect = new Rect(startX, mLayoutState.mYOffset + mLayoutState.mScrollOffset, newStartX, mLayoutState.mYOffset + viewHeight + mLayoutState.mScrollOffset);
+        ItemInfo itemInfo = new ItemInfo(rect, mLayoutState.mCurrentRowIndex, mLayoutState.mCurrentItemPos, mItemRecoder.getRowItemSize(mLayoutState.mCurrentRowIndex));
+        mItemRecoder.putItemToRow(mLayoutState.mCurrentRowIndex, itemInfo);
+    }
+
+    private int fillRowToTailWithCache(RecyclerView.Recycler recycler, int rowIndex) {
+        int maxRowHeight = 0;
+        List<ItemInfo> infoList = mItemRecoder.getItemsOnRow(rowIndex);
+        for (ItemInfo itemInfo : infoList) {
+            View view = recycler.getViewForPosition(itemInfo.mIndexInAdapter);
+            addView(view);
+            measureChildWithMargins(view, 0, 0);
+            Rect rect = itemInfo.mRect;
+            maxRowHeight = Math.max(maxRowHeight, rect.bottom - rect.top);
+
+            layoutDecoratedWithMargins(view, rect.left, rect.top - mLayoutState.mScrollOffset, rect.right, rect.bottom - mLayoutState.mScrollOffset);
+            UL.Companion.d(TAG, "fillRowToTailWithCache, yOffset=%d, top=%d, mScrollOffset=%d", mLayoutState.mYOffset, rect.top, mLayoutState.mScrollOffset);
+            mLayoutState.mCurrentItemPos++;
+        }
+        mLayoutState.mCurrentRowIndex++;
+        return maxRowHeight;
     }
 
     private void fillToHead(RecyclerView.Recycler recycler) {
