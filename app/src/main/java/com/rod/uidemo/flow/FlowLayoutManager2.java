@@ -30,10 +30,35 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
             return 0;
         }
         dy = fixDy(dy);
-        fillRowToTail(recycler);
+
+        updateLayoutState(dy);
+        fillToTail(recycler);
         mLayoutState.mScrollOffset += dy;
         offsetChildrenVertical(-dy);
         return dy;
+    }
+
+    private void updateLayoutState(int dy) {
+        mLayoutState.mAbsDy = Math.abs(dy);
+        if (dy < 0) {
+            View firstChild = getChildAt(0);
+            int firstChildIndex = getPosition(firstChild);
+            mLayoutState.mCurrentItemPos = firstChildIndex - 1;
+            ItemInfo itemInfo = mItemRecoder.getItemInfo(firstChildIndex);
+            mLayoutState.mCurrentRowIndex = itemInfo == null ? -1 : itemInfo.mRowIndex - 1;
+            mLayoutState.mRemainSpace = getDecoratedTop(firstChild) - mLayoutState.mTopBounds + mLayoutState.mAbsDy;
+            mLayoutState.mLayoutDirection = LayoutState.LAYOUT_TO_HEAD;
+        } else {
+            View lastChild = getChildAt(getChildCount() - 1);
+            int lastChildIndex = getPosition(lastChild);
+            mLayoutState.mCurrentItemPos = lastChildIndex + 1;
+            ItemInfo itemInfo = mItemRecoder.getItemInfo(lastChildIndex);
+            mLayoutState.mCurrentRowIndex = itemInfo == null ? -1 : itemInfo.mRowIndex + 1;
+            int lastViewBottom = getDecoratedBottom(lastChild);
+            mLayoutState.mRemainSpace = mLayoutState.mBottomBounds - lastViewBottom + mLayoutState.mAbsDy;
+            mLayoutState.mYOffset = lastViewBottom;
+            mLayoutState.mLayoutDirection = LayoutState.LAYOUT_TO_TAIL;
+        }
     }
 
     private int fixDy(int dy) {
