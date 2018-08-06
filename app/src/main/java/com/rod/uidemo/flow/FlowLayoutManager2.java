@@ -4,11 +4,14 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.rod.uidemo.UL;
+
 /**
  * @author Rod
  * @date 2018/8/5
  */
 public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
+    private static final String TAG = "FlowLayoutManager2";
 
     private ItemRecoder mItemRecoder = new ItemRecoder();
     private LayoutState mLayoutState = new LayoutState();
@@ -32,7 +35,7 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
         dy = fixDy(dy);
 
         updateLayoutState(dy);
-        fillToTail(recycler);
+        fill(recycler);
         mLayoutState.mScrollOffset += dy;
         offsetChildrenVertical(-dy);
         return dy;
@@ -40,6 +43,7 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
 
     private void updateLayoutState(int dy) {
         mLayoutState.mAbsDy = Math.abs(dy);
+        mLayoutState.mNeedRecycle = true;
         if (dy < 0) {
             View firstChild = getChildAt(0);
             int firstChildIndex = getPosition(firstChild);
@@ -114,7 +118,7 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
 
     private void fill(RecyclerView.Recycler recycler) {
         if (mLayoutState.mNeedRecycle) {
-            recycle();
+            recycle(recycler);
         }
 
         if (mLayoutState.mLayoutDirection == LayoutState.LAYOUT_TO_TAIL) {
@@ -186,16 +190,50 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
     }
 
     private void fillToHead(RecyclerView.Recycler recycler) {
-        while (mLayoutState.mRemainSpace > 0 && mLayoutState.mCurrentItemPos >= 0) {
-            mLayoutState.mRemainSpace -= fillRowToHead(recycler);
-        }
+//        while (mLayoutState.mRemainSpace > 0 && mLayoutState.mCurrentItemPos >= 0) {
+//            mLayoutState.mRemainSpace -= fillRowToHead(recycler);
+//        }
     }
 
     private int fillRowToHead(RecyclerView.Recycler recycler) {
         return 0;
     }
 
-    private void recycle() {
+    private void recycle(RecyclerView.Recycler recycler) {
+        if (mLayoutState.mLayoutDirection == LayoutState.LAYOUT_TO_TAIL) {
+            for (int i = 0, childCount = getChildCount(); i < childCount; i++) {
+                View view = getChildAt(i);
+                if (getDecoratedBottom(view) - mLayoutState.mAbsDy >= mLayoutState.mTopBounds) {
+                    removeAndRecycleViews(recycler, 0, i);
+                    return;
+                }
+            }
+        } else {
+            int lastViewIndex = getChildCount() - 1;
+            for (int i = lastViewIndex; i >= 0; i--) {
+                View view = getChildAt(i);
+                if (getDecoratedTop(view) + mLayoutState.mAbsDy <= mLayoutState.mBottomBounds) {
+                    removeAndRecycleViews(recycler, lastViewIndex, i);
+                    return;
+                }
+            }
+        }
+    }
 
+    private void removeAndRecycleViews(RecyclerView.Recycler recycler, int startIndex, int endIndex) {
+        if (startIndex == endIndex) {
+            return;
+        }
+
+        UL.Companion.d(TAG, "removeAndRecycleViews, startIndex=%d, endIndex=%d", startIndex, endIndex);
+        if (endIndex > startIndex) {
+            for (int i = endIndex - 1; i >= startIndex; i--) {
+                removeAndRecycleViewAt(i, recycler);
+            }
+        } else {
+            for (int i = startIndex; i > endIndex; i--) {
+                removeAndRecycleViewAt(i, recycler);
+            }
+        }
     }
 }
