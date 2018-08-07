@@ -1,5 +1,6 @@
 package com.rod.uidemo.flow;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.SparseArray;
 
@@ -29,9 +30,9 @@ final class ItemRecoder {
         return mItemMap.get(indexInAdapter, null);
     }
 
-    @Nullable
+    @NonNull
     List<ItemInfo> getItemsOnRow(int rowIndex) {
-        return mRowItemMap.get(rowIndex, null);
+        return mRowItemMap.get(rowIndex, new ArrayList<ItemInfo>());
     }
 
     void putItemToRow(int rowIndex, ItemInfo itemInfo) {

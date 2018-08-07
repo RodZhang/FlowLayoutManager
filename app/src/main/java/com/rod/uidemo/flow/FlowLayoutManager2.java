@@ -222,13 +222,28 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
     }
 
     private void fillToHead(RecyclerView.Recycler recycler) {
-//        while (mLayoutState.mRemainSpace > 0 && mLayoutState.mCurrentItemPos >= 0) {
-//            mLayoutState.mRemainSpace -= fillRowToHead(recycler);
-//        }
+        while (mLayoutState.mRemainSpace > 0 && mLayoutState.mCurrentItemPos >= 0) {
+            mLayoutState.mRemainSpace -= fillRowToHead(recycler);
+        }
     }
 
     private int fillRowToHead(RecyclerView.Recycler recycler) {
-        return 0;
+        int maxRowHeight = 0;
+        List<ItemInfo> items = mItemRecoder.getItemsOnRow(mLayoutState.mCurrentRowIndex);
+        for (int i = items.size() - 1; i >= 0; i--) {
+            ItemInfo itemInfo = items.get(i);
+            View view = recycler.getViewForPosition(itemInfo.mIndexInAdapter);
+            addView(view, 0);
+            measureChildWithMargins(view, 0, 0);
+            Rect rect = itemInfo.mRect;
+            maxRowHeight = Math.max(maxRowHeight, rect.bottom - rect.top);
+
+            layoutDecoratedWithMargins(view, rect.left, rect.top - mLayoutState.mScrollOffset, rect.right, rect.bottom - mLayoutState.mScrollOffset);
+            UL.Companion.d(TAG, "fillRowToHead, yOffset=%d, top=%d, mScrollOffset=%d", mLayoutState.mYOffset, rect.top, mLayoutState.mScrollOffset);
+            mLayoutState.mCurrentItemPos--;
+        }
+        mLayoutState.mCurrentRowIndex--;
+        return maxRowHeight;
     }
 
     private void recycle(RecyclerView.Recycler recycler) {
