@@ -39,6 +39,11 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
 
         updateLayoutState(dy);
         fill(recycler);
+        UL.Companion.d(TAG, "scrollVerticallyBy, dy = %d", dy);
+        if (mLayoutState.mRemainSpace > 0) {
+            dy = (dy / mLayoutState.mAbsDy) * Math.abs(mLayoutState.mAbsDy - mLayoutState.mRemainSpace);
+            UL.Companion.d(TAG, "scrollVerticallyBy, after fix dy = %d", dy);
+        }
         mLayoutState.mScrollOffset += dy;
         offsetChildrenVertical(-dy);
         return dy;
