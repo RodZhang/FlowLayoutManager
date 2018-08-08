@@ -26,6 +26,10 @@ final class LayoutState {
      */
     int mCurrentItemPos;
     /**
+     * 当前填充的行下标
+     */
+    int mCurrentRowIndex;
+    /**
      * 当前滑动的偏移量
      */
     int mScrollOffset;
@@ -35,6 +39,10 @@ final class LayoutState {
      * 当次滑动的距离
      */
     int mAbsDy;
+    /**
+     * 可用于填充的空间
+     */
+    int mRemainSpace;
     /**
      * 是否需要回收view，当滑动时要回收被滑出屏幕的view
      */
