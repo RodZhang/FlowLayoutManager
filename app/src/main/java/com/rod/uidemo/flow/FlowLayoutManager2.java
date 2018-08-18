@@ -35,7 +35,9 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
         if (state.isPreLayout() || dy == 0 || getChildCount() == 0) {
             return 0;
         }
+        UL.Companion.d(TAG, "fixDy before, dy=%d, remainingScrollVertical=%d, targetPos=%d", dy, state.getRemainingScrollVertical(), state.getTargetScrollPosition());
         dy = fixDy(dy);
+        UL.Companion.d(TAG, "fixDy after, dy=%d", dy);
 
         updateLayoutState(dy);
         fill(recycler);
@@ -74,20 +76,21 @@ public class FlowLayoutManager2 extends RecyclerView.LayoutManager {
     }
 
     private int fixDy(int dy) {
-        return dy < 0 ? fixDyScrollToDown(dy) : fixDyScrollToUp(dy);
+        return dy < 0 ? fixDyScrollToHead(dy) : fixDyScrollToTail(dy);
     }
 
-    private int fixDyScrollToDown(int dy) {
+    private int fixDyScrollToHead(int dy) {
         return (mLayoutState.mScrollOffset + dy < 0) ? -mLayoutState.mScrollOffset : dy;
     }
 
-    private int fixDyScrollToUp(int dy) {
+    private int fixDyScrollToTail(int dy) {
         final View lastView = getChildAt(getChildCount() - 1);
         final int lastViewIndex = getPosition(lastView);
         final int viewBottom = getDecoratedBottom(lastView);
+        UL.Companion.d(TAG, "fixDyScrollToTail, viewBottom=%d, lastViewIndex=%d, dy=%d, bottomBounds=%d", viewBottom, lastViewIndex, dy, mLayoutState.mBottomBounds);
         if (lastViewIndex == getItemCount() - 1) {
-            if (viewBottom - dy < getHeight()) {
-                return viewBottom - getHeight();
+            if (viewBottom - dy < mLayoutState.mBottomBounds) {
+                return viewBottom - mLayoutState.mBottomBounds;
             } else {
                 return dy;
             }
