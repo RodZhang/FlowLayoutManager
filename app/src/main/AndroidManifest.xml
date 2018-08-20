@@ -24,6 +24,10 @@
         <activity android:name="com.rod.uidemo.flow.FlowLayoutActivity" />
 
         <activity android:name="com.rod.uidemo.sticky.StickyActivity" />
+
+        <activity android:name=".flow.FlowActivity" />
+
+        <activity android:name=".flow.FlowLayoutActivity2" />
     </application>
 
 </manifest>
