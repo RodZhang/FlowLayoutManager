@@ -27,7 +27,7 @@
 
         <activity android:name=".flow.FlowActivity" />
 
-        <activity android:name=".flow.FlowLayoutActivity2" />
+        <activity android:name=".flowlayout.FlowLayoutActivity2" />
     </application>
 
 </manifest>

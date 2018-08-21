@@ -1,4 +1,4 @@
-package com.rod.uidemo.flow;
+package com.rod.uidemo.flowlayout;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -18,11 +18,7 @@ public class FlowLayout extends ViewGroup {
 
     private int mPadH, mPadV;
 
-    private int mMaxLineCount = Integer.MAX_VALUE;
-    private int mFoldLineCount = Integer.MAX_VALUE;
-    private boolean mNeedFold;
-
-    private View mSpecialView;
+    private Measurer mMeasurer = new NormalMeasurer();
 
     private final LayoutProperty mProperty = new LayoutProperty();
 
@@ -43,30 +39,24 @@ public class FlowLayout extends ViewGroup {
         }
     }
 
-    public void setMaxLineCount(int maxLineCount) {
-        mMaxLineCount = maxLineCount;
-    }
-
-    public void setFoldLineCount(int foldLineCount) {
-        mFoldLineCount = foldLineCount;
-    }
-
-    public void setNeedFold(boolean needFold) {
-        mNeedFold = needFold;
-    }
-
-    public void setSpecialView(View specialView) {
-        mSpecialView = specialView;
+    public void setMeasurer(Measurer measurer) {
+        mMeasurer = measurer;
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         resetLayoutProperties(widthMeasureSpec, heightMeasureSpec);
-        if (isLimited()) {
-            measureWithLimit(mProperty);
-        } else {
-            measureNormal(mProperty);
+
+        int contentHeight = mMeasurer.measure(mProperty);
+        if (mProperty.mHeightMode == MeasureSpec.UNSPECIFIED) {
+            mProperty.mHeight = contentHeight + mProperty.mYStartPadding + mProperty.mYEndPadding;
+        } else if (mProperty.mHeightMode == MeasureSpec.AT_MOST) {
+            int newHeight = contentHeight + mProperty.mYStartPadding + mProperty.mYEndPadding;
+            if (newHeight < mProperty.mHeight) {
+                mProperty.mHeight = newHeight;
+            }
         }
+        setMeasuredDimension(mProperty.mWidth, mProperty.mHeight);
     }
 
     private void resetLayoutProperties(int widthMeasureSpec, int heightMeasureSpec) {
@@ -81,56 +71,9 @@ public class FlowLayout extends ViewGroup {
         mProperty.mYEndPadding = getPaddingBottom();
         mProperty.mChildCount = getChildCount();
         mProperty.mLastChildIndex = mProperty.mChildCount - 1;
-    }
-
-    private void measureWithLimit(@NonNull LayoutProperty property) {
-
-    }
-
-    private void measureNormal(@NonNull LayoutProperty property) {
-        int preLineHeight = 0;
-        int startX = property.mXStartPadding;
-        int startY = 0;
-        boolean isChangeLine = false;
-        for (int i = 0; i < property.mChildCount; i++) {
-            final View child = getChildAt(i);
-            if (child.getVisibility() == GONE) {
-                continue;
-            }
-            child.measure(property.mChildMeasureSpace, property.mChildMeasureSpace);
-            preLineHeight = Math.max(preLineHeight, child.getMeasuredHeight());
-            int childWidth = child.getMeasuredWidth();
-            if (startX + childWidth > property.mXBeforeEnd) {
-                childWidth = Math.min(property.mXBeforeEnd - property.mXStartPadding, childWidth);
-                child.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.EXACTLY),
-                        property.mChildMeasureSpace);
-                startX = property.mXStartPadding + childWidth;
-                isChangeLine = true;
-            } else {
-                startX += childWidth + mPadH;
-                isChangeLine = false;
-            }
-            if (isChangeLine || i == 0) {
-                startY += preLineHeight + mPadV;
-            }
-        }
-
-        int contentHeight = Math.max(startY - mPadV, 0);
-        if (property.mHeightMode == MeasureSpec.UNSPECIFIED) {
-            property.mHeight = contentHeight + property.mYStartPadding + property.mYEndPadding;
-        } else if (property.mHeightMode == MeasureSpec.AT_MOST) {
-            int newHeight = contentHeight + property.mYStartPadding + property.mYEndPadding;
-            if (newHeight < property.mHeight) {
-                property.mHeight = newHeight;
-            }
-        }
-        setMeasuredDimension(property.mWidth, property.mHeight);
-    }
-
-    private boolean isLimited() {
-        boolean needFold = mNeedFold && mFoldLineCount != Integer.MAX_VALUE;
-        return mSpecialView != null
-                && (needFold || mMaxLineCount != Integer.MAX_VALUE);
+        mProperty.mPadH = mPadH;
+        mProperty.mPadV = mPadV;
+        mProperty.mParent = this;
     }
 
     @Override
@@ -156,7 +99,7 @@ public class FlowLayout extends ViewGroup {
         startY = 0;
     }
 
-    private static class LayoutProperty {
+    static class LayoutProperty {
         int mWidth;
         int mWidthMode;
         int mHeight;
@@ -168,6 +111,9 @@ public class FlowLayout extends ViewGroup {
         int mYEndPadding;
         int mChildCount;
         int mLastChildIndex;
+        int mPadV;
+        int mPadH;
+        ViewGroup mParent;
         final int mChildMeasureSpace = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
     }
 }

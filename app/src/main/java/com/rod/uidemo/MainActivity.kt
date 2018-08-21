@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.LinearLayout
 import com.rod.uidemo.flow.FlowLayoutActivity
-import com.rod.uidemo.flow.FlowLayoutActivity2
+import com.rod.uidemo.flowlayout.FlowLayoutActivity2
 import com.rod.uidemo.sticky.StickyActivity
 import org.jetbrains.anko.button
 import org.jetbrains.anko.scrollView

@@ -1,18 +1,15 @@
-package com.rod.uidemo.flow
+package com.rod.uidemo.flowlayout
 
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.view.ViewGroup
-import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import android.widget.Button
 import android.widget.LinearLayout.LayoutParams
 import android.widget.LinearLayout.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
 import android.widget.TextView
 import org.jetbrains.anko.*
-import org.jetbrains.anko.internals.AnkoInternals.addView
 import org.jetbrains.anko.sdk25.coroutines.onClick
 
 /**
@@ -26,19 +23,13 @@ class FlowLayoutActivity2 : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val flowLayout = FlowLayout(this)
-        val button = Button(this@FlowLayoutActivity2)
+        val button = TextView(this@FlowLayoutActivity2)
         button.layoutParams = ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
         button.text = "D"
-        flowLayout.setSpecialView(button)
-//        flowLayout.setMaxLineCount(3)
-//        flowLayout.setFoldLineCount(2)
-//        flowLayout.setNeedFold(true)
+        val specialMeasurer = SpecialMeasurer(3, 2, true, button);
+//        flowLayout.setMeasurer(NormalMeasurer())
+        flowLayout.setMeasurer(specialMeasurer)
         flowLayout.setPadding(20, 20, 20, 20)
-        button.onClick {
-            flowLayout.setNeedFold(false)
-            flowLayout.removeView(button)
-            flowLayout.requestLayout()
-        }
         verticalLayout {
             val edit = editText()
 
@@ -58,24 +49,26 @@ class FlowLayoutActivity2 : AppCompatActivity() {
                     layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
                     onClick {
                         flowLayout.removeAllViews()
-                        flowLayout.setNeedFold(true)
                     }
                 }
 
                 button("test") {
                     layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
                     onClick {
-                        (0 until 16).forEach {
+                        (0 until 50).forEach {
                             val str = (0..it).map { "#" }.joinToString()
-                            addItem(flowLayout, str)
+                            addItem(flowLayout, str, false)
                         }
                     }
                 }
             }
 
+            val scrollView = scrollView {
+                layoutParams = LayoutParams(MATCH_PARENT, 0, 1F)
+            }
             flowLayout.layoutParams = LayoutParams(MATCH_PARENT, WRAP_CONTENT)
             flowLayout.backgroundColor = Color.parseColor("#40000000")
-            addView(flowLayout)
+            scrollView.addView(flowLayout)
         }
     }
 
