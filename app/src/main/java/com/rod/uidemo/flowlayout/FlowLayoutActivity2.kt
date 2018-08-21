@@ -26,8 +26,14 @@ class FlowLayoutActivity2 : AppCompatActivity() {
         val button = TextView(this@FlowLayoutActivity2)
         button.layoutParams = ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
         button.text = "D"
-        val specialMeasurer = SpecialMeasurer(3, 2, true, button);
+        button.textColor = Color.parseColor("#FFFFFF")
+        button.backgroundColor = Color.parseColor("#FF0000")
 //        flowLayout.setMeasurer(NormalMeasurer())
+        val specialMeasurer = SpecialMeasurer(3, 2, true, button);
+        button.onClick {
+            specialMeasurer.setNeedFold(false)
+            flowLayout.requestLayout()
+        }
         flowLayout.setMeasurer(specialMeasurer)
         flowLayout.setPadding(20, 20, 20, 20)
         verticalLayout {
@@ -57,7 +63,7 @@ class FlowLayoutActivity2 : AppCompatActivity() {
                     onClick {
                         (0 until 50).forEach {
                             val str = (0..it).map { "#" }.joinToString()
-                            addItem(flowLayout, str, false)
+                            addItem(flowLayout, str)
                         }
                     }
                 }

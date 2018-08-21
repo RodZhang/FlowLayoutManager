@@ -25,6 +25,10 @@ public class SpecialMeasurer implements Measurer {
         mSpecialView = specialView;
     }
 
+    public void setNeedFold(boolean needFold) {
+        mNeedFold = needFold;
+    }
+
     @Override
     public int measure(@NonNull FlowLayout.LayoutProperty property) {
         int preLineHeight = 0;
@@ -32,21 +36,44 @@ public class SpecialMeasurer implements Measurer {
         int startY = 0;
         boolean isChangeLine;
         ViewGroup parent = property.mParent;
+        if (mSpecialView != null && mSpecialView.getParent() != null) {
+            parent.removeView(mSpecialView);
+        }
         int lineIndex = 0;
-        for (int i = 0; i < property.mChildCount; i++) {
+        int childCount = parent.getChildCount();
+        for (int i = 0; i < childCount; i++) {
             final View child = parent.getChildAt(i);
-            if (lineIndex == mMaxLineCount) {
+            if (lineIndex == mMaxLineCount || (lineIndex == mFoldLineCount) && mNeedFold) {
                 child.setVisibility(GONE);
                 continue;
             }
-            if (child.getVisibility() == GONE) {
-                continue;
-            }
+            child.setVisibility(View.VISIBLE);
 
             child.measure(property.mChildMeasureSpace, property.mChildMeasureSpace);
             preLineHeight = Math.max(preLineHeight, child.getMeasuredHeight());
             int childWidth = child.getMeasuredWidth();
-            if (startX + childWidth > property.mXBeforeEnd) {
+            if (mSpecialView != null && mNeedFold && lineIndex == mFoldLineCount - 1) {
+                mSpecialView.measure(MeasureSpec.makeMeasureSpec(40, MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+                int specialViewWidth = mSpecialView.getMeasuredWidth();
+                if (startX + childWidth + specialViewWidth > property.mXBeforeEnd) {
+                    if (i == childCount - 1) {
+                        int newWidth = property.mXBeforeEnd - startX;
+                        if (newWidth < childWidth) {
+                            child.measure(MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY),
+                                    property.mChildMeasureSpace);
+                        }
+                    } else {
+                        child.setVisibility(GONE);
+                        parent.addView(mSpecialView, i);
+                    }
+                    startX = property.mXStartPadding + childWidth;
+                    lineIndex++;
+                } else {
+                    startX += childWidth + property.mPadH;
+                }
+                isChangeLine = false;
+            } else if (startX + childWidth > property.mXBeforeEnd) {
                 childWidth = Math.min(property.mXBeforeEnd - property.mXStartPadding, childWidth);
                 child.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.EXACTLY),
                         property.mChildMeasureSpace);
