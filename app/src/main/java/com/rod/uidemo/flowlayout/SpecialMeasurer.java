@@ -35,9 +35,14 @@ public class SpecialMeasurer implements Measurer {
         int lineIndex = 0;
         for (int i = 0; i < property.mChildCount; i++) {
             final View child = parent.getChildAt(i);
+            if (lineIndex == mMaxLineCount) {
+                child.setVisibility(GONE);
+                continue;
+            }
             if (child.getVisibility() == GONE) {
                 continue;
             }
+
             child.measure(property.mChildMeasureSpace, property.mChildMeasureSpace);
             preLineHeight = Math.max(preLineHeight, child.getMeasuredHeight());
             int childWidth = child.getMeasuredWidth();
@@ -49,8 +54,8 @@ public class SpecialMeasurer implements Measurer {
                 isChangeLine = true;
                 lineIndex++;
                 if (lineIndex == mMaxLineCount) {
-                    parent.removeView(child);
-                    break;
+                    child.setVisibility(GONE);
+                    isChangeLine = false;
                 }
             } else {
                 startX += childWidth + property.mPadH;
