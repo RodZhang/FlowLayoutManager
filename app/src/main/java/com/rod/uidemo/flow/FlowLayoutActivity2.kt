@@ -8,8 +8,11 @@ import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.Button
 import android.widget.LinearLayout.LayoutParams
+import android.widget.LinearLayout.LayoutParams.MATCH_PARENT
+import android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
 import android.widget.TextView
 import org.jetbrains.anko.*
+import org.jetbrains.anko.internals.AnkoInternals.addView
 import org.jetbrains.anko.sdk25.coroutines.onClick
 
 /**
@@ -27,9 +30,9 @@ class FlowLayoutActivity2 : AppCompatActivity() {
         button.layoutParams = ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
         button.text = "D"
         flowLayout.setSpecialView(button)
-        flowLayout.setMaxLineCount(3)
-        flowLayout.setFoldLineCount(2)
-        flowLayout.setNeedFold(true)
+//        flowLayout.setMaxLineCount(3)
+//        flowLayout.setFoldLineCount(2)
+//        flowLayout.setNeedFold(true)
         flowLayout.setPadding(20, 20, 20, 20)
         button.onClick {
             flowLayout.setNeedFold(false)
@@ -41,7 +44,7 @@ class FlowLayoutActivity2 : AppCompatActivity() {
 
             linearLayout {
                 button("Add") {
-                    layoutParams = LayoutParams(0, LayoutParams.WRAP_CONTENT, 1F)
+                    layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
                     onClick {
                         if (TextUtils.isEmpty(edit.text)) {
                             return@onClick
@@ -52,25 +55,41 @@ class FlowLayoutActivity2 : AppCompatActivity() {
                 }
 
                 button("Clear") {
-                    layoutParams = LayoutParams(0, LayoutParams.WRAP_CONTENT, 1F)
+                    layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
                     onClick {
                         flowLayout.removeAllViews()
                         flowLayout.setNeedFold(true)
                     }
                 }
+
+                button("test") {
+                    layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
+                    onClick {
+                        (0 until 16).forEach {
+                            val str = (0..it).map { "#" }.joinToString()
+                            addItem(flowLayout, str)
+                        }
+                    }
+                }
             }
 
-            flowLayout.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+            flowLayout.layoutParams = LayoutParams(MATCH_PARENT, WRAP_CONTENT)
             flowLayout.backgroundColor = Color.parseColor("#40000000")
             addView(flowLayout)
         }
     }
 
-    private fun addItem(flowLayout: FlowLayout, item: String) {
+    private fun addItem(flowLayout: FlowLayout, item: String, reverse: Boolean = true) {
         val tv = TextView(flowLayout.context)
         tv.backgroundColor = Color.parseColor("#0000ff")
         tv.textColor = Color.parseColor("#FFFFFF")
+        tv.singleLine = true
+        tv.ellipsize = TextUtils.TruncateAt.END
         tv.text = item
-        flowLayout.addView(tv, 0)
+        if (reverse) {
+            flowLayout.addView(tv, 0)
+        } else {
+            flowLayout.addView(tv)
+        }
     }
 }
