@@ -34,17 +34,19 @@ public class SpecialMeasurer implements Measurer {
         int preLineHeight = 0;
         int startX = property.mXStartPadding;
         int startY = 0;
-        boolean isChangeLine;
+//        boolean isChangeLine;
         ViewGroup parent = property.mParent;
         if (mSpecialView != null && mSpecialView.getParent() != null) {
             parent.removeView(mSpecialView);
         }
         int lineIndex = 0;
+        int colIndex = 0;
         int childCount = parent.getChildCount();
-        for (int i = 0; i < childCount; i++) {
+        for (int i = 0; i < childCount; ) {
             final View child = parent.getChildAt(i);
             if (lineIndex == mMaxLineCount || (lineIndex == mFoldLineCount) && mNeedFold) {
                 child.setVisibility(GONE);
+                i++;
                 continue;
             }
             child.setVisibility(View.VISIBLE);
@@ -57,40 +59,65 @@ public class SpecialMeasurer implements Measurer {
                         MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
                 int specialViewWidth = mSpecialView.getMeasuredWidth();
                 if (startX + childWidth + specialViewWidth > property.mXBeforeEnd) {
+//                    isChangeLine = colIndex == 0;
+                    startY += preLineHeight + property.mPadV;
                     if (i == childCount - 1) {
                         int newWidth = property.mXBeforeEnd - startX;
                         if (newWidth < childWidth) {
                             child.measure(MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY),
                                     property.mChildMeasureSpace);
                         }
+                        colIndex++;
                     } else {
-                        child.setVisibility(GONE);
-                        parent.addView(mSpecialView, i);
+                        if (colIndex == 0) {
+                            startX = property.mXStartPadding;
+                            int newWidth = property.mXBeforeEnd - startX - specialViewWidth;
+                            if (newWidth < childWidth) {
+                                child.measure(MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY),
+                                        property.mChildMeasureSpace);
+                            }
+                            parent.addView(mSpecialView, i + 1);
+                            startX += newWidth + specialViewWidth;
+                            colIndex += 2;
+                            i++;
+                        } else {
+                            child.setVisibility(GONE);
+                            parent.addView(mSpecialView, i);
+                            colIndex++;
+                        }
                     }
                     startX = property.mXStartPadding + childWidth;
                     lineIndex++;
                 } else {
                     startX += childWidth + property.mPadH;
+                    colIndex++;
+//                    isChangeLine = false;
+                    if (i == property.mChildCount - 1) {
+                        startY += preLineHeight + property.mPadV;
+                    }
                 }
-                isChangeLine = false;
             } else if (startX + childWidth > property.mXBeforeEnd) {
                 childWidth = Math.min(property.mXBeforeEnd - property.mXStartPadding, childWidth);
                 child.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.EXACTLY),
                         property.mChildMeasureSpace);
                 startX = property.mXStartPadding + childWidth;
-                isChangeLine = true;
+//                isChangeLine = true;
                 lineIndex++;
-                if (lineIndex == mMaxLineCount) {
-                    child.setVisibility(GONE);
-                    isChangeLine = false;
-                }
-            } else {
-                startX += childWidth + property.mPadH;
-                isChangeLine = false;
-            }
-            if (isChangeLine || i == 0) {
+                colIndex = 0;
                 startY += preLineHeight + property.mPadV;
+            } else {
+                colIndex++;
+                startX += childWidth + property.mPadH;
+//                isChangeLine = false;
+
+                if (i == property.mChildCount - 1) {
+                    startY += preLineHeight + property.mPadV;
+                }
             }
+//            if (isChangeLine || i == 0) {
+//                startY += preLineHeight + property.mPadV;
+//            }
+            i++;
         }
         return Math.max(startY - property.mPadV, 0);
     }

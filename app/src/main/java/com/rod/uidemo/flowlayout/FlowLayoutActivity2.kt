@@ -38,7 +38,21 @@ class FlowLayoutActivity2 : AppCompatActivity() {
         flowLayout.setPadding(20, 20, 20, 20)
         verticalLayout {
             val edit = editText()
+            linearLayout {
+                button("limit") {
+                    layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
+                    onClick {
+                        flowLayout.setMeasurer(specialMeasurer)
+                    }
+                }
 
+                button("unlimit") {
+                    layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
+                    onClick {
+                        flowLayout.setMeasurer(NormalMeasurer())
+                    }
+                }
+            }
             linearLayout {
                 button("Add") {
                     layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
@@ -55,16 +69,26 @@ class FlowLayoutActivity2 : AppCompatActivity() {
                     layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
                     onClick {
                         flowLayout.removeAllViews()
+                        specialMeasurer.setNeedFold(true)
+                    }
+                }
+            }
+            linearLayout {
+                button("ascend") {
+                    layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
+                    onClick {
+                        flowLayout.removeAllViews()
+                        specialMeasurer.setNeedFold(true)
+                        fillView(flowLayout, false)
                     }
                 }
 
-                button("test") {
+                button("reverse") {
                     layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
                     onClick {
-                        (0 until 50).forEach {
-                            val str = (0..it).map { "#" }.joinToString()
-                            addItem(flowLayout, str)
-                        }
+                        flowLayout.removeAllViews()
+                        specialMeasurer.setNeedFold(true)
+                        fillView(flowLayout, true)
                     }
                 }
             }
@@ -76,6 +100,13 @@ class FlowLayoutActivity2 : AppCompatActivity() {
             flowLayout.backgroundColor = Color.parseColor("#40000000")
             scrollView.addView(flowLayout)
         }
+    }
+
+    private fun fillView(flowLayout: FlowLayout, reverse: Boolean) {
+        (0 until 19)
+                .map { (0..it).map { "#" }.joinToString() }
+                .shuffled()
+                .forEach { addItem(flowLayout, it, reverse) }
     }
 
     private fun addItem(flowLayout: FlowLayout, item: String, reverse: Boolean = true) {
