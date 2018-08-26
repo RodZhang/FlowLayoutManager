@@ -15,10 +15,9 @@ public class NormalMeasurer implements Measurer {
 
     @Override
     public int measure(@NonNull FlowLayout.LayoutProperty property) {
-        int preLineHeight = 0;
+        int lineHeight = 0;
         int startX = property.mXStartPadding;
         int startY = 0;
-        boolean isChangeLine;
         ViewGroup parent = property.mParent;
         for (int i = 0; i < property.mChildCount; i++) {
             final View child = parent.getChildAt(i);
@@ -26,22 +25,25 @@ public class NormalMeasurer implements Measurer {
                 continue;
             }
             child.measure(property.mChildMeasureSpace, property.mChildMeasureSpace);
-            preLineHeight = Math.max(preLineHeight, child.getMeasuredHeight());
+            lineHeight = Math.max(lineHeight, child.getMeasuredHeight());
             int childWidth = child.getMeasuredWidth();
             if (startX + childWidth > property.mXBeforeEnd) {
-                childWidth = Math.min(property.mXBeforeEnd - property.mXStartPadding, childWidth);
-                child.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.EXACTLY),
-                        property.mChildMeasureSpace);
-                startX = property.mXStartPadding + childWidth;
-                isChangeLine = true;
+                if (startX == property.mXStartPadding) {
+                    // 说明此行只能容下当前child做为单独一行
+                    child.measure(MeasureSpec.makeMeasureSpec(property.mXSpace, MeasureSpec.AT_MOST),
+                            property.mChildMeasureSpace);
+                    startX = property.mXStartPadding;
+                } else {
+                    startX = property.mXStartPadding + childWidth + property.mPadH;
+                }
+
+                if (i != property.mChildCount - 1) {
+                    startY += lineHeight + property.mPadV;
+                }
             } else {
                 startX += childWidth + property.mPadH;
-                isChangeLine = false;
-            }
-            if (isChangeLine || i == 0) {
-                startY += preLineHeight + property.mPadV;
             }
         }
-        return Math.max(startY - property.mPadV, 0);
+        return startY + lineHeight;
     }
 }

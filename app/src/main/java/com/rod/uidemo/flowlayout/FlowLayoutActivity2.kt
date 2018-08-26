@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
+import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.LinearLayout.LayoutParams
 import android.widget.LinearLayout.LayoutParams.MATCH_PARENT
@@ -26,6 +27,7 @@ class FlowLayoutActivity2 : AppCompatActivity() {
         val button = TextView(this@FlowLayoutActivity2)
         button.layoutParams = ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
         button.text = "D"
+        button.gravity = Gravity.CENTER
         button.textColor = Color.parseColor("#FFFFFF")
         button.backgroundColor = Color.parseColor("#FF0000")
 //        flowLayout.setMeasurer(NormalMeasurer())
@@ -103,8 +105,7 @@ class FlowLayoutActivity2 : AppCompatActivity() {
     }
 
     private fun fillView(flowLayout: FlowLayout, reverse: Boolean) {
-        (0 until 19)
-                .map { (0..it).map { "#" }.joinToString() }
+        (0 until 19).map { it -> (0..it).joinToString { "#" } }
                 .shuffled()
                 .forEach { addItem(flowLayout, it, reverse) }
     }

@@ -31,100 +31,78 @@ public class SpecialMeasurer implements Measurer {
 
     @Override
     public int measure(@NonNull FlowLayout.LayoutProperty property) {
-        int preLineHeight = 0;
+        if (property.mChildCount == 0) {
+            return 0;
+        }
+
+        int lineHeight = 0;
         int startX = property.mXStartPadding;
         int startY = 0;
-//        boolean isChangeLine;
         ViewGroup parent = property.mParent;
         if (mSpecialView != null && mSpecialView.getParent() != null) {
             parent.removeView(mSpecialView);
         }
         int lineIndex = 0;
-        int colIndex = 0;
         int childCount = parent.getChildCount();
-        for (int i = 0; i < childCount; ) {
+        int specialViewWidth = 0;
+
+        for (int i = 0; i < childCount; i++) {
             final View child = parent.getChildAt(i);
-            if (lineIndex == mMaxLineCount || (lineIndex == mFoldLineCount) && mNeedFold) {
+            if (lineIndex == mMaxLineCount || (lineIndex == mFoldLineCount && mNeedFold)) {
                 child.setVisibility(GONE);
-                i++;
                 continue;
             }
             child.setVisibility(View.VISIBLE);
 
             child.measure(property.mChildMeasureSpace, property.mChildMeasureSpace);
-            preLineHeight = Math.max(preLineHeight, child.getMeasuredHeight());
+            lineHeight = Math.max(lineHeight, child.getMeasuredHeight());
             int childWidth = child.getMeasuredWidth();
-            if (mSpecialView != null && mNeedFold && lineIndex == mFoldLineCount - 1) {
-                mSpecialView.measure(MeasureSpec.makeMeasureSpec(40, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-                int specialViewWidth = mSpecialView.getMeasuredWidth();
+            if (canShowSpecialView(lineIndex)) {
+                if (specialViewWidth == 0) {
+                    mSpecialView.measure(MeasureSpec.makeMeasureSpec(80, MeasureSpec.EXACTLY),
+                            MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+                    specialViewWidth = mSpecialView.getMeasuredWidth();
+                }
+
                 if (startX + childWidth + specialViewWidth > property.mXBeforeEnd) {
-//                    isChangeLine = colIndex == 0;
-                    startY += preLineHeight + property.mPadV;
-                    if (i == childCount - 1) {
-                        int newWidth = property.mXBeforeEnd - startX;
-                        if (newWidth < childWidth) {
-                            child.measure(MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY),
-                                    property.mChildMeasureSpace);
-                        }
-                        colIndex++;
+                    if (startX == property.mXStartPadding) {
+                        childWidth = property.mXSpace - property.mPadH - specialViewWidth;
+                        child.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.AT_MOST),
+                                property.mChildMeasureSpace);
+                        i++;
                     } else {
-                        if (colIndex == 0) {
-                            startX = property.mXStartPadding;
-                            int newWidth = property.mXBeforeEnd - startX - specialViewWidth;
-                            if (newWidth < childWidth) {
-                                child.measure(MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY),
-                                        property.mChildMeasureSpace);
-                            }
-                            parent.addView(mSpecialView, i + 1);
-                            startX += newWidth + specialViewWidth;
-                            colIndex += 2;
-                            i++;
-                        } else {
-                            child.setVisibility(GONE);
-                            parent.addView(mSpecialView, i);
-                            colIndex++;
-                        }
+                        child.setVisibility(GONE);
                     }
-                    startX = property.mXStartPadding + childWidth;
+                    parent.addView(mSpecialView, i);
                     lineIndex++;
                 } else {
                     startX += childWidth + property.mPadH;
-                    colIndex++;
-//                    isChangeLine = false;
-                    if (i == property.mChildCount - 1) {
-                        startY += preLineHeight + property.mPadV;
-                    }
                 }
-            } else if (startX + childWidth > property.mXBeforeEnd) {
-                childWidth = Math.min(property.mXBeforeEnd - property.mXStartPadding, childWidth);
-                child.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.EXACTLY),
-                        property.mChildMeasureSpace);
-                startX = property.mXStartPadding + childWidth;
-//                isChangeLine = true;
-                lineIndex++;
-                colIndex = 0;
-                startY += preLineHeight + property.mPadV;
-            } else {
-                colIndex++;
-                startX += childWidth + property.mPadH;
-//                isChangeLine = false;
-
-                if (i == property.mChildCount - 1) {
-                    startY += preLineHeight + property.mPadV;
-                }
+                continue;
             }
-//            if (isChangeLine || i == 0) {
-//                startY += preLineHeight + property.mPadV;
-//            }
-            i++;
+
+            if (startX + childWidth > property.mXBeforeEnd) {
+                if (startX == property.mXStartPadding) {
+                    // 说明此行只能容下当前child做为单独一行
+                    child.measure(MeasureSpec.makeMeasureSpec(property.mXSpace, MeasureSpec.AT_MOST),
+                            property.mChildMeasureSpace);
+                    startX = property.mXStartPadding;
+                } else {
+                    startX = property.mXStartPadding + childWidth + property.mPadH;
+                }
+
+                lineIndex++;
+                if (lineIndex < mMaxLineCount && i != property.mChildCount - 1) {
+                    startY += lineHeight + property.mPadV;
+                }
+            } else {
+                startX += childWidth + property.mPadH;
+            }
         }
-        return Math.max(startY - property.mPadV, 0);
+        return startY + lineHeight;
     }
 
-    private boolean isLimited() {
-        boolean needFold = mNeedFold && mFoldLineCount != Integer.MAX_VALUE;
-        return mSpecialView != null
-                && (needFold || mMaxLineCount != Integer.MAX_VALUE);
+    private boolean canShowSpecialView(int curLineIndex) {
+        return mSpecialView != null && mNeedFold && curLineIndex + 1 == mFoldLineCount;
     }
 }
