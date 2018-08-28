@@ -27,6 +27,7 @@ class FlowLayoutActivity2 : AppCompatActivity() {
         val button = TextView(this@FlowLayoutActivity2)
         button.layoutParams = ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
         button.text = "D"
+        button.setPadding(40, 0, 40, 0)
         button.gravity = Gravity.CENTER
         button.textColor = Color.parseColor("#FFFFFF")
         button.backgroundColor = Color.parseColor("#FF0000")
