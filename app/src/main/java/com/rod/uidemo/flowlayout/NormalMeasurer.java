@@ -14,12 +14,14 @@ import static android.view.View.GONE;
  */
 public class NormalMeasurer implements Measurer {
 
+    private final SparseIntArray mLineHeightMap = new SparseIntArray();
+
     @Override
     public int measure(@NonNull FlowLayout.LayoutProperty property) {
         int lineHeight = 0;
         int lineIndex = 0;
         int startX = property.mXStartPadding;
-        SparseIntArray lineHeightMap = new SparseIntArray();
+        mLineHeightMap.clear();
 
         ViewGroup parent = property.mParent;
         for (int i = 0; i < property.mChildCount; i++) {
@@ -33,7 +35,7 @@ public class NormalMeasurer implements Measurer {
 
             if (startX + childWidth > property.mXBeforeEnd) {
                 lineIndex++;
-                lineHeightMap.put(lineIndex, lineHeight);
+                mLineHeightMap.put(lineIndex, lineHeight);
                 if (childWidth > property.mXSpace) {
                     child.measure(MeasureSpec.makeMeasureSpec(property.mXSpace, MeasureSpec.AT_MOST),
                             property.mChildMeasureSpace);
@@ -44,13 +46,13 @@ public class NormalMeasurer implements Measurer {
                 }
             } else {
                 startX += childWidth + property.mPadH;
-                lineHeightMap.put(lineIndex, lineHeight);
+                mLineHeightMap.put(lineIndex, lineHeight);
             }
         }
-        int lineCount = lineHeightMap.size();
+        int lineCount = mLineHeightMap.size();
         int contentHeight = lineCount * property.mPadV - property.mPadV;
         for (int i = 0; i < lineCount; i++) {
-            contentHeight += lineHeightMap.valueAt(i);
+            contentHeight += mLineHeightMap.valueAt(i);
         }
         return contentHeight;
     }

@@ -106,7 +106,7 @@ class FlowLayoutActivity2 : AppCompatActivity() {
 
     private fun fillView(flowLayout: FlowLayout, reverse: Boolean) {
         (0 until 19).map { it -> (0..it).joinToString { "#" } }
-                .shuffled()
+//                .shuffled()
                 .forEach { addItem(flowLayout, it, reverse) }
     }
 
