@@ -1,6 +1,7 @@
 package com.rod.uidemo.flowlayout;
 
 import android.support.annotation.NonNull;
+import android.util.SparseIntArray;
 import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
@@ -16,8 +17,10 @@ public class NormalMeasurer implements Measurer {
     @Override
     public int measure(@NonNull FlowLayout.LayoutProperty property) {
         int lineHeight = 0;
+        int lineIndex = 0;
         int startX = property.mXStartPadding;
-        int startY = 0;
+        SparseIntArray lineHeightMap = new SparseIntArray();
+
         ViewGroup parent = property.mParent;
         for (int i = 0; i < property.mChildCount; i++) {
             final View child = parent.getChildAt(i);
@@ -27,23 +30,28 @@ public class NormalMeasurer implements Measurer {
             child.measure(property.mChildMeasureSpace, property.mChildMeasureSpace);
             lineHeight = Math.max(lineHeight, child.getMeasuredHeight());
             int childWidth = child.getMeasuredWidth();
+
             if (startX + childWidth > property.mXBeforeEnd) {
-                if (startX == property.mXStartPadding) {
-                    // 说明此行只能容下当前child做为单独一行
+                lineIndex++;
+                lineHeightMap.put(lineIndex, lineHeight);
+                if (childWidth > property.mXSpace) {
                     child.measure(MeasureSpec.makeMeasureSpec(property.mXSpace, MeasureSpec.AT_MOST),
                             property.mChildMeasureSpace);
                     startX = property.mXStartPadding;
+                    lineIndex++;
                 } else {
                     startX = property.mXStartPadding + childWidth + property.mPadH;
                 }
-
-                if (i != property.mChildCount - 1) {
-                    startY += lineHeight + property.mPadV;
-                }
             } else {
                 startX += childWidth + property.mPadH;
+                lineHeightMap.put(lineIndex, lineHeight);
             }
         }
-        return startY + lineHeight;
+        int lineCount = lineHeightMap.size();
+        int contentHeight = lineCount * property.mPadV - property.mPadV;
+        for (int i = 0; i < lineCount; i++) {
+            contentHeight += lineHeightMap.valueAt(i);
+        }
+        return contentHeight;
     }
 }
