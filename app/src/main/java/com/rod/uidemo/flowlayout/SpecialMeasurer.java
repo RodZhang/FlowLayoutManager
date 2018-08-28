@@ -71,10 +71,12 @@ public class SpecialMeasurer implements Measurer {
         state.mChildWidth = child.getMeasuredWidth();
 
         if (canShowSpecialView(state.mLineIndex)) {
-        }
-
-        if (state.mStartX + state.mChildWidth > property.mXBeforeEnd) {
-            onChangeLine(child, state, property);
+            mLineHeightMap.put(state.mLineIndex, state.mLineHeight);
+            calculateAtFoldLine(child, state, property);
+        } else if (state.mStartX + state.mChildWidth > property.mXBeforeEnd) {
+            boolean lineCountExtra = state.mStartX == property.mXStartPadding;
+            state.mStartX = property.mXStartPadding;
+            onChangeLine(child, state, property, lineCountExtra);
         } else {
             state.mStartX += state.mChildWidth + property.mPadH;
             mLineHeightMap.put(state.mLineIndex, state.mLineHeight);
@@ -82,44 +84,52 @@ public class SpecialMeasurer implements Measurer {
     }
 
     private void onChangeLine(View child, MeasureState state,
-                              FlowLayout.LayoutProperty property) {
-        state.mLineIndex++;
-        mLineHeightMap.put(state.mLineIndex, state.mLineHeight);
+                              FlowLayout.LayoutProperty property, boolean needAddLine) {
         if (canShowSpecialView(state.mLineIndex)) {
-            calculateAtFoldLine(child, state, property, true);
-            return;
-        }
-
-        if (state.mStartX + state.mChildWidth > property.mXBeforeEnd) {
-
+            calculateAtFoldLine(child, state, property);
+        } else if (state.mChildWidth > property.mXSpace) {
+            state.mChildWidth = property.mXSpace;
+            child.measure(
+                    MeasureSpec.makeMeasureSpec(state.mChildWidth, MeasureSpec.AT_MOST),
+                    property.mChildMeasureSpace);
+            mLineHeightMap.put(state.mLineIndex, state.mLineHeight);
+            state.mStartX = property.mXStartPadding;
         } else {
-
+            state.mStartX += property.mPadH + state.mChildWidth;
+            mLineHeightMap.put(state.mLineIndex, state.mLineHeight);
+            state.mLineIndex++;
         }
     }
 
     private void calculateAtFoldLine(View child, MeasureState state,
-                                     FlowLayout.LayoutProperty property,
-                                     boolean isFirst) {
-        if (!isFirst) {
-            child.setVisibility(GONE);
+                                     FlowLayout.LayoutProperty property) {
+        ensureSpecialViewMeasured(state);
+
+        if (state.mStartX + state.mChildWidth + property.mPadH + state.mSpecialViewWidth
+                > property.mXBeforeEnd) {
+            state.mChildWidth = property.mXBeforeEnd - property.mXStartPadding
+                    - property.mPadH - state.mSpecialViewWidth;
+            child.measure(
+                    MeasureSpec.makeMeasureSpec(state.mChildWidth, MeasureSpec.AT_MOST),
+                    property.mChildMeasureSpace);
+            state.mIndex++;
             state.mParent.addView(mSpecialView, state.mIndex);
-            return;
+        } else {
+            state.mStartX += state.mChildWidth + property.mPadH;
         }
+    }
+
+    private void ensureSpecialViewMeasured(MeasureState state) {
         if (state.mSpecialViewWidth == 0) {
             mSpecialView.measure(
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                     MeasureSpec.makeMeasureSpec(state.mLineHeight, MeasureSpec.EXACTLY));
             state.mSpecialViewWidth = mSpecialView.getMeasuredWidth();
         }
-        if (property.mXStartPadding + state.mChildWidth + state.mSpecialViewWidth + property.mPadH
-                > property.mXBeforeEnd) {
-            state.mChildWidth = property.mXBeforeEnd  - property.mXStartPadding
-                    - property.mPadH - state.mSpecialViewWidth;
-            child.measure(
-                    MeasureSpec.makeMeasureSpec(state.mChildWidth, MeasureSpec.AT_MOST),
-                    property.mChildMeasureSpace);
-            state.mIndex++;
-        }
+    }
+
+    private boolean canShowSpecialView(int curLineIndex) {
+        return mSpecialView != null && mNeedFold && curLineIndex + 1 == mFoldLineCount;
     }
 
     private static class MeasureState {
@@ -130,9 +140,5 @@ public class SpecialMeasurer implements Measurer {
         int mLineHeight;
         int mIndex;
         int mSpecialViewWidth;
-    }
-
-    private boolean canShowSpecialView(int curLineIndex) {
-        return mSpecialView != null && mNeedFold && curLineIndex + 1 == mFoldLineCount;
     }
 }
