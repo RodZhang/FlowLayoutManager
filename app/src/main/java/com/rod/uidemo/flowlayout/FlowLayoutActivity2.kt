@@ -32,12 +32,14 @@ class FlowLayoutActivity2 : AppCompatActivity() {
         button.textColor = Color.parseColor("#FFFFFF")
         button.backgroundColor = Color.parseColor("#FF0000")
 //        flowLayout.setMeasurer(NormalMeasurer())
-        val specialMeasurer = SpecialMeasurer(3, 2, true, button);
         button.onClick {
-            specialMeasurer.setNeedFold(false)
+            flowLayout.setNeedFold(false)
             flowLayout.requestLayout()
         }
-        flowLayout.setMeasurer(specialMeasurer)
+        flowLayout.setMaxLineCount(3)
+        flowLayout.setNeedFold(true)
+        flowLayout.setFoldLineCount(2)
+        flowLayout.setSpecialView(button)
         flowLayout.setPadding(20, 20, 20, 20)
         verticalLayout {
             val edit = editText()
@@ -45,7 +47,7 @@ class FlowLayoutActivity2 : AppCompatActivity() {
                 button("limit") {
                     layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
                     onClick {
-                        flowLayout.setMeasurer(specialMeasurer)
+//                        flowLayout.setMeasurer(specialMeasurer)
                     }
                 }
 
@@ -72,7 +74,7 @@ class FlowLayoutActivity2 : AppCompatActivity() {
                     layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
                     onClick {
                         flowLayout.removeAllViews()
-                        specialMeasurer.setNeedFold(true)
+                        flowLayout.setNeedFold(true)
                     }
                 }
             }
@@ -81,7 +83,7 @@ class FlowLayoutActivity2 : AppCompatActivity() {
                     layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
                     onClick {
                         flowLayout.removeAllViews()
-                        specialMeasurer.setNeedFold(true)
+                        flowLayout.setNeedFold(true)
                         fillView(flowLayout, false)
                     }
                 }
@@ -90,7 +92,7 @@ class FlowLayoutActivity2 : AppCompatActivity() {
                     layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
                     onClick {
                         flowLayout.removeAllViews()
-                        specialMeasurer.setNeedFold(true)
+                        flowLayout.setNeedFold(true)
                         fillView(flowLayout, true)
                     }
                 }
@@ -106,7 +108,7 @@ class FlowLayoutActivity2 : AppCompatActivity() {
     }
 
     private fun fillView(flowLayout: FlowLayout, reverse: Boolean) {
-        (0 until 19).map { it -> (0..it).joinToString { "#" } }
+        (0 until 30).map { it -> (0..it).joinToString { "#" } }
 //                .shuffled()
                 .forEach { addItem(flowLayout, it, reverse) }
     }

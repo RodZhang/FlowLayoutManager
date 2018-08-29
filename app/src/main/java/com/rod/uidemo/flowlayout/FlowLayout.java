@@ -2,8 +2,10 @@ package com.rod.uidemo.flowlayout;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Rect;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -17,8 +19,10 @@ public class FlowLayout extends ViewGroup {
     private final static int PAD_H = 20, PAD_V = 20;
 
     private int mPadH, mPadV;
-
-    private Measurer mMeasurer = new NormalMeasurer();
+    private int mMaxLineCount = Integer.MAX_VALUE;
+    private int mFoldLineCount = Integer.MAX_VALUE;
+    private boolean mNeedFold;
+    private View mSpecialView;
 
     private final LayoutProperty mProperty = new LayoutProperty();
 
@@ -39,21 +43,35 @@ public class FlowLayout extends ViewGroup {
         }
     }
 
-    public void setMeasurer(Measurer measurer) {
-        mMeasurer = measurer;
+    public void setMaxLineCount(int maxLineCount) {
+        mMaxLineCount = maxLineCount;
+    }
+
+    public void setFoldLineCount(int foldLineCount) {
+        mFoldLineCount = foldLineCount;
+    }
+
+    public void setNeedFold(boolean needFold) {
+        mNeedFold = needFold;
+    }
+
+    public void setSpecialView(View specialView) {
+        mSpecialView = specialView;
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if (mSpecialView != null && mSpecialView.getParent() != null) {
+            removeView(mSpecialView);
+        }
         resetLayoutProperties(widthMeasureSpec, heightMeasureSpec);
 
-        int contentHeight = mMeasurer.measure(mProperty);
+        int contentHeight = measure(mProperty);
         if (mProperty.mHeightMode == MeasureSpec.UNSPECIFIED) {
-            mProperty.mHeight = contentHeight + mProperty.mYStartPadding + mProperty.mYEndPadding;
+            mProperty.mHeight = contentHeight;
         } else if (mProperty.mHeightMode == MeasureSpec.AT_MOST) {
-            int newHeight = contentHeight + mProperty.mYStartPadding + mProperty.mYEndPadding;
-            if (newHeight < mProperty.mHeight) {
-                mProperty.mHeight = newHeight;
+            if (contentHeight < mProperty.mHeight) {
+                mProperty.mHeight = contentHeight;
             }
         }
         setMeasuredDimension(mProperty.mWidth, mProperty.mHeight);
@@ -70,33 +88,98 @@ public class FlowLayout extends ViewGroup {
         mProperty.mYStartPadding = getPaddingTop();
         mProperty.mYEndPadding = getPaddingBottom();
         mProperty.mChildCount = getChildCount();
-        mProperty.mLastChildIndex = mProperty.mChildCount - 1;
-        mProperty.mPadH = mPadH;
-        mProperty.mPadV = mPadV;
-        mProperty.mParent = this;
+        mProperty.mChildRects.clear();
+    }
+
+    private int measure(@NonNull FlowLayout.LayoutProperty property) {
+        int specialViewWidth = 0;
+        if (mSpecialView != null) {
+            mSpecialView.measure(
+                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+            specialViewWidth = mSpecialView.getMeasuredWidth();
+        }
+        int lineIndex = 0;
+        int childWidth;
+        int childHeight;
+        int lineHeight = 0;
+        View child;
+        int startX = property.mXStartPadding;
+        int startY = property.mYStartPadding;
+        for (int i = 0; i < property.mChildCount; ) {
+            child = getChildAt(i);
+            child.measure(MeasureSpec.makeMeasureSpec(property.mXSpace, MeasureSpec.AT_MOST),
+                    property.mChildMeasureSpace);
+            childWidth = child.getMeasuredWidth();
+            childHeight = child.getMeasuredHeight();
+
+            if (canShowSpecialView(lineIndex)) {
+                lineHeight = Math.max(lineHeight, childHeight);
+                if (startX + childWidth + mPadH + specialViewWidth <= property.mXBeforeEnd) {
+                    Rect rect = new Rect(startX, startY, startX + childWidth, startY + childHeight);
+                    property.mChildRects.put(i, rect);
+                    startX += childWidth + mPadH;
+                    i++;
+                    continue;
+                } else {
+                    if (startX == property.mXStartPadding) {
+                        boolean hasMore = i < property.mChildCount - 1;
+                        int extra = hasMore ? specialViewWidth + mPadH : 0;
+                        int newWidth = property.mXBeforeEnd - extra - startX;
+                        child.measure(MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.AT_MOST),
+                                property.mChildMeasureSpace);
+                        Rect rect = new Rect(startX, startY, startX + newWidth, startY + childHeight);
+                        property.mChildRects.put(i, rect);
+                        startX += newWidth + mPadH;
+                        if (hasMore) {
+                            addView(mSpecialView, i + 1);
+                            rect = new Rect(startX, startY, startX + mSpecialView.getMeasuredWidth(), startY + lineHeight);
+                            property.mChildRects.put(i + 1, rect);
+                        }
+                    } else {
+                        addView(mSpecialView, i);
+                        Rect rect = new Rect(startX, startY, startX + mSpecialView.getMeasuredWidth(), startY + lineHeight);
+                        property.mChildRects.put(i, rect);
+                    }
+                    break;
+                }
+            }
+
+            if (startX + childWidth <= property.mXBeforeEnd) {
+                Rect rect = new Rect(startX, startY, startX + childWidth, startY + childHeight);
+                property.mChildRects.put(i, rect);
+                startX += childWidth + mPadH;
+                lineHeight = Math.max(lineHeight, childHeight);
+                i++;
+            } else {
+                lineIndex++;
+                if (lineIndex >= mMaxLineCount) {
+                    break;
+                }
+                startY += lineHeight + mPadV;
+                startX = property.mXStartPadding;
+            }
+        }
+        return startY + lineHeight + getPaddingBottom();
+    }
+
+    private boolean canShowSpecialView(int curLineIndex) {
+        return mSpecialView != null && mNeedFold && curLineIndex + 1 == mFoldLineCount;
     }
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        int startX = mProperty.mXStartPadding;
-        int startY = mProperty.mYStartPadding;
-        int maxLineHeight = 0;
-        for (int i = 0; i < getChildCount(); i++) {
+        int childCount = getChildCount();
+        for (int i = 0; i < childCount; i++) {
             final View child = getChildAt(i);
-            if (child.getVisibility() == GONE) {
-                continue;
+            Rect rect = mProperty.mChildRects.get(i);
+            if (rect == null) {
+                child.setVisibility(GONE);
+            } else {
+                child.setVisibility(VISIBLE);
+                child.layout(rect.left, rect.top, rect.right, rect.bottom);
             }
-            int childWidth = child.getMeasuredWidth();
-            int childHeight = child.getMeasuredHeight();
-            maxLineHeight = Math.max(maxLineHeight, childHeight);
-            if (startX + childWidth > mProperty.mWidth) {
-                startX = mProperty.mXStartPadding;
-                startY += maxLineHeight + mPadV;
-            }
-            child.layout(startX, startY, startX + childWidth, startY + childHeight);
-            startX += childWidth + mPadH;
         }
-        startY = 0;
     }
 
     static class LayoutProperty {
@@ -110,10 +193,7 @@ public class FlowLayout extends ViewGroup {
         int mYStartPadding;
         int mYEndPadding;
         int mChildCount;
-        int mLastChildIndex;
-        int mPadV;
-        int mPadH;
-        ViewGroup mParent;
         final int mChildMeasureSpace = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+        final SparseArray<Rect> mChildRects = new SparseArray<>();
     }
 }
