@@ -32,6 +32,12 @@ class MainActivity : AppCompatActivity() {
                 button("flow").onClick {
                     simpleStartActivity(FlowLayoutActivity2::class.java)
                 }
+
+                button("test dataRepository").onClick {
+                    startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, FansFragment::class.java.name)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, FansFragment.TAG))
+                }
             }
         }
     }

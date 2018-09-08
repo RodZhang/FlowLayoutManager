@@ -47,14 +47,12 @@ class FlowLayoutActivity2 : AppCompatActivity() {
                 button("limit") {
                     layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
                     onClick {
-//                        flowLayout.setMeasurer(specialMeasurer)
                     }
                 }
 
                 button("unlimit") {
                     layoutParams = LayoutParams(0, WRAP_CONTENT, 1F)
                     onClick {
-                        flowLayout.setMeasurer(NormalMeasurer())
                     }
                 }
             }

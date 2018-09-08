@@ -1,7 +1,7 @@
 package com.rod.uidemo
 
-import android.app.Fragment
 import android.os.Bundle
+import android.support.v4.app.Fragment
 import android.view.View
 import com.rod.uidemo.data.DataPage
 import com.rod.uidemo.data.DataRepositoryImpl
@@ -29,6 +29,7 @@ abstract class BaseDataFragment<D : DataUnit> : Fragment(), DataPage<D> {
             mPageId = generatePageId()
             mDataUnit = generateDataUnit()
             DataRepositoryImpl.instance().put(mPageId, mDataUnit)
+            onNewCreate()
         } else {
             mPageId = savedInstanceState.getString(KEY_PAGE_ID)
             with(DataRepositoryImpl.instance()) {
@@ -39,6 +40,7 @@ abstract class BaseDataFragment<D : DataUnit> : Fragment(), DataPage<D> {
                 }
                 mDataUnit = data
             }
+            onRestoreState()
         }
     }
 
