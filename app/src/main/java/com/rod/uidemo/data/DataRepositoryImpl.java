@@ -38,7 +38,10 @@ public class DataRepositoryImpl implements DataRepository {
     @Override
     public void remove(String key) {
         UL.Companion.d(TAG, "remove(key=%s)", key);
-        mUnitMap.remove(key);
+        DataUnit dataUnit = mUnitMap.remove(key);
+        if (dataUnit != null) {
+            dataUnit.clear();
+        }
     }
 
     @Nullable

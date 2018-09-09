@@ -6,4 +6,8 @@ package com.rod.uidemo.data;
  */
 public interface DataUnit {
 
+    /**
+     * 当被从DataRepository中移除时调用，可用于释放资源
+     */
+    void clear();
 }

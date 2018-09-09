@@ -27,7 +27,6 @@ class FlowActivity : Activity() {
         super.onCreate(savedInstanceState)
 
         verticalLayout {
-            val recyclerView = RecyclerView(context)
 
         }
     }
