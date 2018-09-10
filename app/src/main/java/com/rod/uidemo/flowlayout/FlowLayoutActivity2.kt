@@ -31,7 +31,6 @@ class FlowLayoutActivity2 : AppCompatActivity() {
         button.gravity = Gravity.CENTER
         button.textColor = Color.parseColor("#FFFFFF")
         button.backgroundColor = Color.parseColor("#FF0000")
-//        flowLayout.setMeasurer(NormalMeasurer())
         button.onClick {
             flowLayout.setNeedFold(false)
             flowLayout.requestLayout()
@@ -93,6 +92,27 @@ class FlowLayoutActivity2 : AppCompatActivity() {
                         flowLayout.setNeedFold(true)
                         fillView(flowLayout, true)
                     }
+                }
+            }
+
+            button("test") {
+                onClick {
+                    flowLayout.removeAllViews()
+                    flowLayout.setNeedFold(true)
+                    addItem(flowLayout, "ggggggggg", false)
+                    addItem(flowLayout, "fffffffffffff", false)
+                    addItem(flowLayout, "ddddddd", false)
+                    addItem(flowLayout, "ssssss", false)
+                    addItem(flowLayout, "a", false)
+                    addItem(flowLayout, "a", false)
+                    addItem(flowLayout, "888888", false)
+                    addItem(flowLayout, "777777", false)
+                    addItem(flowLayout, "55566666", false)
+                    addItem(flowLayout, "555555", false)
+                    addItem(flowLayout, "4444", false)
+                    addItem(flowLayout, "333333", false)
+                    addItem(flowLayout, "22222", false)
+                    addItem(flowLayout, "111111", false)
                 }
             }
 

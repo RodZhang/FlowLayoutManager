@@ -89,6 +89,7 @@ public class FlowLayout extends ViewGroup {
         mProperty.mYStartPadding = getPaddingTop();
         mProperty.mYEndPadding = getPaddingBottom();
         mProperty.mChildCount = getChildCount();
+        mProperty.mLastChildIndex = mProperty.mChildCount - 1;
         mProperty.mChildRects.clear();
     }
 
@@ -115,7 +116,7 @@ public class FlowLayout extends ViewGroup {
             childWidth = child.getMeasuredWidth();
             childHeight = child.getMeasuredHeight();
 
-            if (canShowSpecialView(lineIndex)) {
+            if (canShowSpecialView(lineIndex, i == property.mLastChildIndex)) {
                 lineHeight = Math.max(lineHeight, childHeight);
                 // TODO: 2018/9/10 check is last child
                 if (startX + childWidth + mPadH + specialViewWidth <= property.mXBeforeEnd) {
@@ -178,8 +179,9 @@ public class FlowLayout extends ViewGroup {
         }
     }
 
-    private boolean canShowSpecialView(int curLineIndex) {
-        return mSpecialView != null && mNeedFold && curLineIndex + 1 == mFoldLineCount;
+    private boolean canShowSpecialView(int curLineIndex, boolean isLastChild) {
+        return mSpecialView != null && mNeedFold && curLineIndex + 1 == mFoldLineCount
+                && !isLastChild;
     }
 
     @Override
@@ -214,6 +216,7 @@ public class FlowLayout extends ViewGroup {
         int mYStartPadding;
         int mYEndPadding;
         int mChildCount;
+        int mLastChildIndex;
         final int mChildMeasureSpace = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
         final SparseArray<Rect> mChildRects = new SparseArray<>();
     }
