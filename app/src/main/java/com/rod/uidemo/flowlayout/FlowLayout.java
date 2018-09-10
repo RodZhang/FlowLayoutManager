@@ -19,10 +19,12 @@ public class FlowLayout extends ViewGroup {
     private final static int PAD_H = 20, PAD_V = 20;
 
     private int mPadH, mPadV;
+
     private int mMaxLineCount = Integer.MAX_VALUE;
     private int mFoldLineCount = Integer.MAX_VALUE;
     private boolean mNeedFold;
     private View mSpecialView;
+    private SpecialViewEventListener mSpecialViewListener;
 
     private final LayoutProperty mProperty = new LayoutProperty();
 
@@ -43,20 +45,19 @@ public class FlowLayout extends ViewGroup {
         }
     }
 
-    public void setMaxLineCount(int maxLineCount) {
+    public void config(int foldLineCount, boolean needFold, View specialView, int maxLineCount) {
+        mFoldLineCount = foldLineCount;
+        mNeedFold = needFold;
+        mSpecialView = specialView;
         mMaxLineCount = maxLineCount;
     }
 
-    public void setFoldLineCount(int foldLineCount) {
-        mFoldLineCount = foldLineCount;
+    public void setSpecialViewListener(SpecialViewEventListener specialViewListener) {
+        mSpecialViewListener = specialViewListener;
     }
 
     public void setNeedFold(boolean needFold) {
         mNeedFold = needFold;
-    }
-
-    public void setSpecialView(View specialView) {
-        mSpecialView = specialView;
     }
 
     @Override
@@ -91,7 +92,7 @@ public class FlowLayout extends ViewGroup {
         mProperty.mChildRects.clear();
     }
 
-    private int measure(@NonNull FlowLayout.LayoutProperty property) {
+    private int measure(@NonNull LayoutProperty property) {
         int specialViewWidth = 0;
         if (mSpecialView != null) {
             mSpecialView.measure(
@@ -100,6 +101,7 @@ public class FlowLayout extends ViewGroup {
             specialViewWidth = mSpecialView.getMeasuredWidth();
         }
         int lineIndex = 0;
+        int contentHeight = 0;
         int childWidth;
         int childHeight;
         int lineHeight = 0;
@@ -115,6 +117,7 @@ public class FlowLayout extends ViewGroup {
 
             if (canShowSpecialView(lineIndex)) {
                 lineHeight = Math.max(lineHeight, childHeight);
+                // TODO: 2018/9/10 check is last child
                 if (startX + childWidth + mPadH + specialViewWidth <= property.mXBeforeEnd) {
                     Rect rect = new Rect(startX, startY, startX + childWidth, startY + childHeight);
                     property.mChildRects.put(i, rect);
@@ -132,12 +135,12 @@ public class FlowLayout extends ViewGroup {
                         property.mChildRects.put(i, rect);
                         startX += newWidth + mPadH;
                         if (hasMore) {
-                            addView(mSpecialView, i + 1);
+                            showSpecialView(i + 1);
                             rect = new Rect(startX, startY, startX + mSpecialView.getMeasuredWidth(), startY + lineHeight);
                             property.mChildRects.put(i + 1, rect);
                         }
                     } else {
-                        addView(mSpecialView, i);
+                        showSpecialView(i);
                         Rect rect = new Rect(startX, startY, startX + mSpecialView.getMeasuredWidth(), startY + lineHeight);
                         property.mChildRects.put(i, rect);
                     }
@@ -160,7 +163,19 @@ public class FlowLayout extends ViewGroup {
                 startX = property.mXStartPadding;
             }
         }
-        return startY + lineHeight + getPaddingBottom();
+        return startY + lineHeight + property.mYEndPadding;
+    }
+
+    private void showSpecialView(int index) {
+        addView(mSpecialView, index);
+        mSpecialView.setOnClickListener(v -> {
+            if (mSpecialViewListener != null) {
+                mSpecialViewListener.onClickSpecialView(mSpecialView);
+            }
+        });
+        if (mSpecialViewListener != null) {
+            mSpecialViewListener.onSpecialViewShown(mSpecialView);
+        }
     }
 
     private boolean canShowSpecialView(int curLineIndex) {
@@ -180,6 +195,12 @@ public class FlowLayout extends ViewGroup {
                 child.layout(rect.left, rect.top, rect.right, rect.bottom);
             }
         }
+    }
+
+    public interface SpecialViewEventListener {
+        void onSpecialViewShown(View specialView);
+
+        void onClickSpecialView(View specialView);
     }
 
     static class LayoutProperty {
