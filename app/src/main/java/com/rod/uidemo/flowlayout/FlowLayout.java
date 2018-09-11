@@ -164,8 +164,7 @@ public class FlowLayout extends ViewGroup {
             boolean hasMore = state.mIndex < property.mChildCount - 1;
             int extra = hasMore ? state.mSpecialViewWidth + mPadH : 0;
             int newWidth = property.mXBeforeEnd - extra - state.mStartX;
-            int widthMeasureSpec = MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.AT_MOST);
-            state.mChildView.measure(widthMeasureSpec, property.mUnspecifiedSpec);
+            state.mChildView.measure(property.mAtMostSpace, property.mUnspecifiedSpec);
             Rect rect = new Rect(state.mStartX, state.mStartY, state.mStartX + newWidth,
                     state.mStartY + state.mChildHeight);
             property.mChildRects.put(state.mIndex, rect);
