@@ -27,6 +27,7 @@ public class FlowLayout extends ViewGroup {
     private SpecialViewEventListener mSpecialViewListener;
 
     private final LayoutProperty mProperty = new LayoutProperty();
+    private final MeasureState mState = new MeasureState();
 
     public FlowLayout(Context context) {
         super(context);
@@ -91,6 +92,7 @@ public class FlowLayout extends ViewGroup {
         mProperty.mChildCount = getChildCount();
         mProperty.mLastChildIndex = mProperty.mChildCount - 1;
         mProperty.mChildRects.clear();
+        mProperty.mAtMostSpace = MeasureSpec.makeMeasureSpec(mProperty.mXSpace, MeasureSpec.AT_MOST);
     }
 
     private int measure(@NonNull LayoutProperty property) {
@@ -101,70 +103,100 @@ public class FlowLayout extends ViewGroup {
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
             specialViewWidth = mSpecialView.getMeasuredWidth();
         }
-        int lineIndex = 0;
-        int contentHeight = 0;
-        int childWidth;
-        int childHeight;
-        int lineHeight = 0;
-        View child;
-        int startX = property.mXStartPadding;
-        int startY = property.mYStartPadding;
-        for (int i = 0; i < property.mChildCount; ) {
-            child = getChildAt(i);
-            child.measure(MeasureSpec.makeMeasureSpec(property.mXSpace, MeasureSpec.AT_MOST),
-                    property.mChildMeasureSpace);
-            childWidth = child.getMeasuredWidth();
-            childHeight = child.getMeasuredHeight();
+        resetMeasureState();
+        mState.mSpecialViewWidth = specialViewWidth;
+        mState.mStartX = property.mXStartPadding;
+        mState.mStartY = property.mYStartPadding;
 
-            if (canShowSpecialView(lineIndex, i == property.mLastChildIndex)) {
-                lineHeight = Math.max(lineHeight, childHeight);
-                // TODO: 2018/9/10 check is last child
-                if (startX + childWidth + mPadH + specialViewWidth <= property.mXBeforeEnd) {
-                    Rect rect = new Rect(startX, startY, startX + childWidth, startY + childHeight);
-                    property.mChildRects.put(i, rect);
-                    startX += childWidth + mPadH;
-                    i++;
-                    continue;
-                } else {
-                    if (startX == property.mXStartPadding) {
-                        boolean hasMore = i < property.mChildCount - 1;
-                        int extra = hasMore ? specialViewWidth + mPadH : 0;
-                        int newWidth = property.mXBeforeEnd - extra - startX;
-                        child.measure(MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.AT_MOST),
-                                property.mChildMeasureSpace);
-                        Rect rect = new Rect(startX, startY, startX + newWidth, startY + childHeight);
-                        property.mChildRects.put(i, rect);
-                        startX += newWidth + mPadH;
-                        if (hasMore) {
-                            showSpecialView(i + 1);
-                            rect = new Rect(startX, startY, startX + mSpecialView.getMeasuredWidth(), startY + lineHeight);
-                            property.mChildRects.put(i + 1, rect);
-                        }
-                    } else {
-                        showSpecialView(i);
-                        Rect rect = new Rect(startX, startY, startX + mSpecialView.getMeasuredWidth(), startY + lineHeight);
-                        property.mChildRects.put(i, rect);
-                    }
+        for (; mState.mIndex < property.mChildCount; ) {
+            mState.mChildView = getChildAt(mState.mIndex);
+            mState.mChildView.measure(property.mAtMostSpace, property.mUnspecifiedSpec);
+            mState.mChildWidth = mState.mChildView.getMeasuredWidth();
+            mState.mChildHeight = mState.mChildView.getMeasuredHeight();
+
+            if (canShowSpecialView(mState.mLineIndex) && mState.mIndex < property.mLastChildIndex) {
+                if (measureFoldLine(property, mState)) {
                     break;
+                } else {
+                    continue;
                 }
             }
 
-            if (startX + childWidth <= property.mXBeforeEnd) {
-                Rect rect = new Rect(startX, startY, startX + childWidth, startY + childHeight);
-                property.mChildRects.put(i, rect);
-                startX += childWidth + mPadH;
-                lineHeight = Math.max(lineHeight, childHeight);
-                i++;
+            int right = mState.mStartX + mState.mChildWidth;
+            if (right <= property.mXBeforeEnd) {
+                int bottom = mState.mStartY + mState.mChildHeight;
+                Rect rect = new Rect(mState.mStartX, mState.mStartY, right, bottom);
+                property.mChildRects.put(mState.mIndex, rect);
+                mState.mStartX += mState.mChildWidth + mPadH;
+                mState.mLineHeight = Math.max(mState.mLineHeight, mState.mChildHeight);
+                mState.mIndex++;
             } else {
-                lineIndex++;
-                if (lineIndex >= mMaxLineCount) {
+                mState.mLineIndex++;
+                if (mState.mLineIndex >= mMaxLineCount) {
                     break;
                 }
-                startY += lineHeight + mPadV;
-                startX = property.mXStartPadding;
+                mState.mStartY += mState.mLineHeight + mPadV;
+                mState.mStartX = property.mXStartPadding;
             }
         }
-        return startY + lineHeight + property.mYEndPadding;
+        return mState.mStartY + mState.mLineHeight + property.mYEndPadding;
+    }
+
+    /**
+     * 测量需要折叠的那行view
+     *
+     * @param property
+     * @param state
+     * @return true: 已添加specialView
+     */
+    private boolean measureFoldLine(@NonNull LayoutProperty property, @NonNull MeasureState state) {
+        state.mLineHeight = Math.max(state.mLineHeight, state.mChildHeight);
+        if (state.mStartX + state.mChildWidth + mPadH + state.mSpecialViewWidth <= property.mXBeforeEnd) {
+            Rect rect = new Rect(state.mStartX, state.mStartY,
+                    state.mStartX + state.mChildWidth,
+                    state.mStartY + state.mChildHeight);
+            property.mChildRects.put(state.mIndex, rect);
+            state.mStartX += state.mChildWidth + mPadH;
+            state.mIndex++;
+            return false;
+        }
+        if (state.mStartX == property.mXStartPadding) {
+            boolean hasMore = state.mIndex < property.mChildCount - 1;
+            int extra = hasMore ? state.mSpecialViewWidth + mPadH : 0;
+            int newWidth = property.mXBeforeEnd - extra - state.mStartX;
+            int widthMeasureSpec = MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.AT_MOST);
+            state.mChildView.measure(widthMeasureSpec, property.mUnspecifiedSpec);
+            Rect rect = new Rect(state.mStartX, state.mStartY, state.mStartX + newWidth,
+                    state.mStartY + state.mChildHeight);
+            property.mChildRects.put(state.mIndex, rect);
+            state.mStartX += newWidth + mPadH;
+            if (hasMore) {
+                showSpecialView(state.mIndex + 1);
+                rect = new Rect(state.mStartX, state.mStartY,
+                        state.mStartX + mSpecialView.getMeasuredWidth(),
+                        state.mStartY + state.mLineHeight);
+                property.mChildRects.put(state.mIndex + 1, rect);
+            }
+        } else {
+            showSpecialView(state.mIndex);
+            Rect rect = new Rect(state.mStartX, state.mStartY,
+                    state.mStartX + mSpecialView.getMeasuredWidth(),
+                    state.mStartY + state.mLineHeight);
+            property.mChildRects.put(state.mIndex, rect);
+        }
+        return true;
+    }
+
+    private void resetMeasureState() {
+        mState.mStartX = 0;
+        mState.mStartY = 0;
+        mState.mLineIndex = 0;
+        mState.mLineHeight = 0;
+        mState.mChildWidth = 0;
+        mState.mChildHeight = 0;
+        mState.mSpecialViewWidth = 0;
+        mState.mIndex = 0;
+        mState.mChildView = null;
     }
 
     private void showSpecialView(int index) {
@@ -179,9 +211,8 @@ public class FlowLayout extends ViewGroup {
         }
     }
 
-    private boolean canShowSpecialView(int curLineIndex, boolean isLastChild) {
-        return mSpecialView != null && mNeedFold && curLineIndex + 1 == mFoldLineCount
-                && !isLastChild;
+    private boolean canShowSpecialView(int curLineIndex) {
+        return mSpecialView != null && mNeedFold && curLineIndex + 1 == mFoldLineCount;
     }
 
     @Override
@@ -217,7 +248,20 @@ public class FlowLayout extends ViewGroup {
         int mYEndPadding;
         int mChildCount;
         int mLastChildIndex;
-        final int mChildMeasureSpace = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+        int mAtMostSpace;
+        final int mUnspecifiedSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
         final SparseArray<Rect> mChildRects = new SparseArray<>();
+    }
+
+    static class MeasureState {
+        int mStartX;
+        int mStartY;
+        int mLineIndex;
+        int mLineHeight;
+        int mChildWidth;
+        int mChildHeight;
+        int mSpecialViewWidth;
+        int mIndex;
+        View mChildView;
     }
 }

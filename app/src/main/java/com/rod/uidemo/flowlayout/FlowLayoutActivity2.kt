@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout.LayoutParams
 import android.widget.LinearLayout.LayoutParams.MATCH_PARENT
@@ -31,15 +32,17 @@ class FlowLayoutActivity2 : AppCompatActivity() {
         button.gravity = Gravity.CENTER
         button.textColor = Color.parseColor("#FFFFFF")
         button.backgroundColor = Color.parseColor("#FF0000")
-        button.onClick {
-            flowLayout.setNeedFold(false)
-            flowLayout.requestLayout()
-        }
-        flowLayout.setMaxLineCount(3)
-        flowLayout.setNeedFold(true)
-        flowLayout.setFoldLineCount(2)
-        flowLayout.setSpecialView(button)
+        flowLayout.config(2, true, button, 3)
         flowLayout.setPadding(20, 20, 20, 20)
+        flowLayout.setSpecialViewListener(object : FlowLayout.SpecialViewEventListener {
+            override fun onSpecialViewShown(specialView: View?) {
+            }
+
+            override fun onClickSpecialView(specialView: View?) {
+                flowLayout.setNeedFold(false)
+                flowLayout.requestLayout()
+            }
+        })
         verticalLayout {
             val edit = editText()
             linearLayout {
