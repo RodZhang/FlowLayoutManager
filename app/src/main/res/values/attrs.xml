@@ -6,4 +6,8 @@
         <attr name="dividerSizeVertical" format="dimension" />
         <attr name="dividerSizeHorizontal" format="dimension" />
     </declare-styleable>
+
+    <declare-styleable name="Refresh">
+        <attr name="refreshable" format="boolean"/>
+    </declare-styleable>
 </resources>
