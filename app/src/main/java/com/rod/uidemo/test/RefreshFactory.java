@@ -2,7 +2,6 @@ package com.rod.uidemo.test;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.util.ArrayMap;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.InflateException;

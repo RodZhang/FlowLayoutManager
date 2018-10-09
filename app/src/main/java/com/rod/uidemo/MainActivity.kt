@@ -9,6 +9,7 @@ import com.rod.uidemo.flow.FlowLayoutActivity
 import com.rod.uidemo.flowlayout.FlowLayoutActivity2
 import com.rod.uidemo.sticky.StickyActivity
 import com.rod.uidemo.test.RefreshFragment
+import com.rod.uidemo.test.TestLayoutAnimFragment
 import org.jetbrains.anko.button
 import org.jetbrains.anko.scrollView
 import org.jetbrains.anko.sdk25.coroutines.onClick
@@ -44,6 +45,12 @@ class MainActivity : AppCompatActivity() {
                     startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
                             .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, RefreshFragment::class.java.name)
                             .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, RefreshFragment.TAG))
+                }
+
+                button("test layoutanim").onClick {
+                    startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, TestLayoutAnimFragment::class.java.name)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, TestLayoutAnimFragment.TAG))
                 }
             }
         }
