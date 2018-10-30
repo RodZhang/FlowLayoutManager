@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity
 import android.widget.LinearLayout
 import com.rod.uidemo.flow.FlowLayoutActivity
 import com.rod.uidemo.flowlayout.FlowLayoutActivity2
+import com.rod.uidemo.hotsearch.HotSearchActivity
 import com.rod.uidemo.sticky.StickyActivity
 import com.rod.uidemo.test.RefreshFragment
 import com.rod.uidemo.test.TestLayoutAnimFragment
@@ -22,6 +23,10 @@ class MainActivity : AppCompatActivity() {
         scrollView {
             verticalLayout {
                 orientation = LinearLayout.VERTICAL
+
+                button("Hot Search") {
+                    onClick { simpleStartActivity(HotSearchActivity::class.java) }
+                }
 
                 button("flowlayout") {
                     onClick { simpleStartActivity(FlowLayoutActivity::class.java) }

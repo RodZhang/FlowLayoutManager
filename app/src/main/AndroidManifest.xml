@@ -31,6 +31,8 @@
         <activity
             android:name=".FragmentHostActivity"
             android:screenOrientation="portrait" />
+        <activity android:name=".hotsearch.HotSearchActivity"
+            android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 
 </manifest>
