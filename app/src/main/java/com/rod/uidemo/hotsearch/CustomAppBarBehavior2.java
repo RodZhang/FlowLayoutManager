@@ -1,6 +1,5 @@
 package com.rod.uidemo.hotsearch;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
@@ -21,11 +20,6 @@ public class CustomAppBarBehavior2 extends AppBarLayout.Behavior {
 
     private View mTargetView;
     private int mParentHeight;
-    private int mTargetViewHeight;
-    private int mTotalDy;
-    private int mLastBottom;
-    private boolean isAnimate;
-    private ValueAnimator mAnimator;
     /**
      * 是否处于惯性滑动状态
      */
@@ -53,7 +47,6 @@ public class CustomAppBarBehavior2 extends AppBarLayout.Behavior {
             mTargetView = parent.findViewWithTag(TARGET_VIEW_TAG);
             if (mTargetView != null) {
                 abl.setClipChildren(false);
-                mTargetViewHeight = mTargetView.getHeight();
                 mParentHeight = abl.getHeight();
             }
         }
@@ -61,7 +54,6 @@ public class CustomAppBarBehavior2 extends AppBarLayout.Behavior {
     }
 
     private float mDownY;
-    private float mMoveTotal;
 
     @Override
     public boolean onInterceptTouchEvent(CoordinatorLayout parent, AppBarLayout child, MotionEvent ev) {
@@ -69,20 +61,18 @@ public class CustomAppBarBehavior2 extends AppBarLayout.Behavior {
             return super.onInterceptTouchEvent(parent, child, ev);
         }
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-            mMoveTotal = 0;
             mDownY = ev.getY();
             return super.onInterceptTouchEvent(parent, child, ev);
         }
 
+        float dy = 0;
         if (ev.getAction() == MotionEvent.ACTION_MOVE) {
-            if (mDownY > 0) {
-                mMoveTotal += ev.getY() - mDownY;
-            }
+            dy = ev.getY() - mDownY;
             mDownY = ev.getY();
         }
 
-        UL.Companion.d(TAG, "onInterceptTouchEvent mMoveTotal=%f, mDownY=%f", mMoveTotal, mDownY);
-        if (mMoveTotal + child.getBottom() > mParentHeight) {
+        UL.Companion.d(TAG, "onInterceptTouchEvent dy=%f, mDownY=%f", dy, mDownY);
+        if (dy + child.getBottom() > mParentHeight) {
             return true;
         } else {
             return super.onInterceptTouchEvent(parent, child, ev);
@@ -92,23 +82,20 @@ public class CustomAppBarBehavior2 extends AppBarLayout.Behavior {
     @Override
     public boolean onTouchEvent(CoordinatorLayout parent, AppBarLayout child, MotionEvent ev) {
         if (mTargetView != null) {
+            float dy = 0;
             switch (ev.getAction()) {
                 case MotionEvent.ACTION_DOWN:
-                    mMoveTotal = 0;
-                    mDownY = 0;
+                    mDownY = ev.getY();
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    if (mDownY > 0) {
-                        mMoveTotal += ev.getY() - mDownY;
+                    if (mDownY != 0) {
+                        dy = ev.getY() - mDownY;
                     }
                     mDownY = ev.getY();
                     break;
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL:
                 default:
-                    mMoveTotal = 0;
-                    mDownY = 0;
-
                     if (child.getBottom() > mParentHeight) {
                         mTargetView.setTranslationY(0);
                         child.setBottom(mParentHeight);
@@ -116,10 +103,10 @@ public class CustomAppBarBehavior2 extends AppBarLayout.Behavior {
                     break;
             }
 
-            UL.Companion.d(TAG, "onTouchEvent, mMoveTotal=%f, mDownY=%f", mMoveTotal, mDownY);
-            if (mMoveTotal + child.getBottom() > mParentHeight) {
-                mTargetView.setTranslationY(mMoveTotal);
-                child.setBottom((int) (mParentHeight + mMoveTotal));
+            UL.Companion.d(TAG, "onTouchEvent, dy=%f, mDownY=%f", dy, mDownY);
+            if (dy + child.getBottom() > mParentHeight) {
+                mTargetView.setTranslationY(mTargetView.getTranslationY() + dy);
+                child.setBottom((int) (child.getBottom() + dy));
                 return true;
             } else {
                 parent.requestDisallowInterceptTouchEvent(false);
@@ -129,4 +116,5 @@ public class CustomAppBarBehavior2 extends AppBarLayout.Behavior {
             return super.onTouchEvent(parent, child, ev);
         }
     }
+
 }
