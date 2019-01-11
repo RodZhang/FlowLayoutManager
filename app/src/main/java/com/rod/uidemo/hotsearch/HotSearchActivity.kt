@@ -13,6 +13,8 @@ import android.view.WindowManager
 import android.widget.TextView
 import com.rod.uidemo.R
 import kotlinx.android.synthetic.main.activity_hot_search.*
+import org.jetbrains.anko.matchParent
+import org.jetbrains.anko.wrapContent
 
 /**
  *
@@ -66,6 +68,7 @@ class HotSearchActivity : AppCompatActivity() {
     class MyRvAdapter(private val context: Context, private val pos: Int)
         : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
+        var hide= true
         val data = getData(pos)
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -80,6 +83,15 @@ class HotSearchActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             if (holder is MHolder) {
                 holder.textView.text = data[position]
+                if (position % 2 == 0 && hide) {
+                    holder.itemView.layoutParams = RecyclerView.LayoutParams(matchParent, 0)
+                    holder.itemView.postDelayed({
+                        hide = false
+                        notifyDataSetChanged()
+                    }, 3000)
+                } else {
+                    holder.itemView.layoutParams = RecyclerView.LayoutParams(matchParent, wrapContent)
+                }
             }
         }
 

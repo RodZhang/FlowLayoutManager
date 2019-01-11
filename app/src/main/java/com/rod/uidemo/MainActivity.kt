@@ -11,6 +11,7 @@ import com.rod.uidemo.hotsearch.HotSearchActivity
 import com.rod.uidemo.sticky.StickyActivity
 import com.rod.uidemo.test.RefreshFragment
 import com.rod.uidemo.test.TestLayoutAnimFragment
+import com.rod.uidemo.touch.TestClickDelegateFragment
 import org.jetbrains.anko.button
 import org.jetbrains.anko.scrollView
 import org.jetbrains.anko.sdk25.coroutines.onClick
@@ -56,6 +57,12 @@ class MainActivity : AppCompatActivity() {
                     startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
                             .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, TestLayoutAnimFragment::class.java.name)
                             .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, TestLayoutAnimFragment.TAG))
+                }
+
+                button("test ClickDelegate").onClick {
+                    startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, TestClickDelegateFragment::class.java.name)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, TestClickDelegateFragment.TAG))
                 }
             }
         }
