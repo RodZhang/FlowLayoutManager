@@ -3,11 +3,13 @@ package com.rod.uidemo
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.support.v4.content.ContextCompat.startActivity
 import android.support.v7.app.AppCompatActivity
 import android.widget.LinearLayout
 import com.rod.uidemo.flow.FlowLayoutActivity
 import com.rod.uidemo.flowlayout.FlowLayoutActivity2
 import com.rod.uidemo.hotsearch.HotSearchActivity
+import com.rod.uidemo.refresh.HorizontalRefreshFragment
 import com.rod.uidemo.sticky.StickyActivity
 import com.rod.uidemo.test.RefreshFragment
 import com.rod.uidemo.test.TestLayoutAnimFragment
@@ -24,6 +26,12 @@ class MainActivity : AppCompatActivity() {
         scrollView {
             verticalLayout {
                 orientation = LinearLayout.VERTICAL
+
+                button("Horizontal Refresh").onClick {
+                    startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, HorizontalRefreshFragment::class.java.name)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, HorizontalRefreshFragment.TAG))
+                }
 
                 button("Hot Search") {
                     onClick { simpleStartActivity(HotSearchActivity::class.java) }
