@@ -24,11 +24,12 @@ class HorizontalDragLayout @JvmOverloads constructor(context: Context,
     }
 
     private val mMeasureInfo = MeasureInfo()
-    private var mTmp = false
+    private var mOffset = 0F
+//    private val mScrollHelper = NestedScrollingParentHelper(this)
 
     override fun onStartNestedScroll(child: View, target: View, axes: Int, type: Int): Boolean {
         UL.d(TAG, "onStartNestedScroll")
-        return mTmp
+        return true
     }
 
     override fun onNestedScrollAccepted(child: View, target: View, axes: Int, type: Int) {
@@ -37,16 +38,25 @@ class HorizontalDragLayout @JvmOverloads constructor(context: Context,
 
     override fun onStopNestedScroll(target: View, type: Int) {
         UL.d(TAG, "onStopNestedScroll")
+        mOffset = 0F
+        mMeasureInfo.mChildView?.translationX = mOffset
     }
 
     override fun onNestedScroll(target: View, dxConsumed: Int, dyConsumed: Int,
                                 dxUnconsumed: Int, dyUnconsumed: Int, type: Int) {
-        UL.d(TAG, "onNestedScroll")
+        UL.d(TAG, "onNestedScroll, dxConsumed=$dxConsumed, dxUnconsumed=$dxUnconsumed")
+
+        if (dxUnconsumed > 0) {
+            mOffset += dxUnconsumed
+        } else if (mOffset > 0) {
+            mOffset += dxConsumed
+        }
+        mMeasureInfo.mChildView?.translationX = -mOffset
     }
 
     override fun onNestedPreScroll(target: View, dx: Int, dy: Int,
                                    consumed: IntArray, type: Int) {
-        UL.d(TAG, "onNestedScroll")
+        UL.d(TAG, "onNestedPreScroll")
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
