@@ -10,6 +10,7 @@ import com.rod.uidemo.flow.FlowLayoutActivity
 import com.rod.uidemo.flowlayout.FlowLayoutActivity2
 import com.rod.uidemo.hotsearch.HotSearchActivity
 import com.rod.uidemo.refresh.HorizontalRefreshFragment
+import com.rod.uidemo.refresh.ViewPagerFragment
 import com.rod.uidemo.sticky.StickyActivity
 import com.rod.uidemo.test.RefreshFragment
 import com.rod.uidemo.test.TestLayoutAnimFragment
@@ -29,8 +30,8 @@ class MainActivity : AppCompatActivity() {
 
                 button("Horizontal Refresh").onClick {
                     startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
-                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, HorizontalRefreshFragment::class.java.name)
-                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, HorizontalRefreshFragment.TAG))
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, ViewPagerFragment::class.java.name)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, ViewPagerFragment.TAG))
                 }
 
                 button("Hot Search") {

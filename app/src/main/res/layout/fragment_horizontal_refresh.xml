@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.rod.uidemo.refresh.HorizontalDragLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/colorAccent">
+    android:layout_height="match_parent">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recyclerView"
+    <com.rod.uidemo.refresh.HorizontalDragLayout
         android:layout_width="match_parent"
-        android:layout_height="120dp"/>
+        android:layout_height="120dp"
+        android:background="@color/colorAccent">
 
-</com.rod.uidemo.refresh.HorizontalDragLayout>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"/>
+
+    </com.rod.uidemo.refresh.HorizontalDragLayout>
+</FrameLayout>

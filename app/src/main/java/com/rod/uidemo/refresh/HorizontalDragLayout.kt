@@ -4,11 +4,16 @@ import android.content.Context
 import android.graphics.Canvas
 import android.support.v4.view.NestedScrollingParent2
 import android.support.v4.view.NestedScrollingParentHelper
+import android.support.v4.view.ViewCompat
+import android.support.v4.view.ViewPager
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
 import android.view.View.MeasureSpec.*
 import android.view.ViewGroup
+import android.widget.Scroller
 import com.rod.uidemo.UL
+import com.scwang.smartrefresh.layout.util.DensityUtil
 
 /**
  * @author Rod
@@ -21,6 +26,7 @@ class HorizontalDragLayout @JvmOverloads constructor(context: Context,
 
     companion object {
         private const val TAG = "HorizontalDragLayout"
+        private var MAX_OFFSET = DensityUtil.dp2px(80F)
     }
 
     private val mMeasureInfo = MeasureInfo()
@@ -44,14 +50,20 @@ class HorizontalDragLayout @JvmOverloads constructor(context: Context,
 
     override fun onNestedScroll(target: View, dxConsumed: Int, dyConsumed: Int,
                                 dxUnconsumed: Int, dyUnconsumed: Int, type: Int) {
-        UL.d(TAG, "onNestedScroll, dxConsumed=$dxConsumed, dxUnconsumed=$dxUnconsumed")
+        UL.d(TAG, "onNestedScroll, dxConsumed=$dxConsumed, dxUnconsumed=$dxUnconsumed, type=$type")
 
-        if (dxUnconsumed > 0) {
-            mOffset += dxUnconsumed
-        } else if (mOffset > 0) {
-            mOffset += dxConsumed
+        if (type == ViewCompat.TYPE_TOUCH) {
+            if (dxUnconsumed > 0) {
+                mOffset += dxUnconsumed
+            } else if (mOffset > 0) {
+                mOffset += dxConsumed
+            }
+            if (mOffset != 0F) {
+                var realOffset = mOffset * 3 / 5
+                realOffset = if (realOffset > MAX_OFFSET) MAX_OFFSET.toFloat() else realOffset
+                mMeasureInfo.mChildView?.translationX = -realOffset
+            }
         }
-        mMeasureInfo.mChildView?.translationX = -mOffset
     }
 
     override fun onNestedPreScroll(target: View, dx: Int, dy: Int,
