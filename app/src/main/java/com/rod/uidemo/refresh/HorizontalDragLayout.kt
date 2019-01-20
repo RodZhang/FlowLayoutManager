@@ -1,10 +1,12 @@
 package com.rod.uidemo.refresh
 
 import android.content.Context
-import android.graphics.Canvas
+import android.graphics.*
 import android.support.v4.view.NestedScrollingParent2
 import android.support.v4.view.ViewCompat
+import android.text.TextPaint
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.MeasureSpec.*
@@ -28,7 +30,22 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
     private val mMeasureInfo = MeasureInfo()
     private var mOffset = 0F
+    private var mRealOffset = 0F
     private val mTouchInfo = TouchInfo()
+    private val mTextPaint = TextPaint()
+    private val mBgPaint = Paint()
+    private var mText = "继续左滑刷新"
+
+    private val mTextBounds: Rect = Rect()
+
+    init {
+        mTextPaint.color = Color.BLACK
+        mTextPaint.textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14F, resources.displayMetrics)
+        mTextPaint.isAntiAlias = true;
+
+        mBgPaint.isAntiAlias = true
+        mBgPaint.color = Color.YELLOW
+    }
 
     override fun onStartNestedScroll(child: View, target: View, axes: Int, type: Int): Boolean {
         UL.d(TAG, "onStartNestedScroll")
@@ -57,8 +74,16 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             }
             if (mOffset != 0F) {
                 var realOffset = mOffset * 3 / 5
-                realOffset = if (realOffset > MAX_OFFSET) MAX_OFFSET.toFloat() else realOffset
+                realOffset = if (realOffset > MAX_OFFSET) {
+                    mText = "松开刷新"
+                    MAX_OFFSET.toFloat()
+                } else {
+                    mText = "继续左滑刷新"
+                    realOffset
+                }
+                mRealOffset = realOffset
                 mMeasureInfo.mChildView?.translationX = -realOffset
+                invalidate()
             }
         }
     }
@@ -157,6 +182,30 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        drawBg(canvas)
+        drawText(canvas)
+    }
+
+    private fun drawBg(canvas: Canvas) {
+        val oval = RectF((measuredWidth - mRealOffset).toFloat(), y, (measuredWidth + mRealOffset).toFloat(), measuredHeight.toFloat())
+        canvas.drawArc(oval, -90F, -180F, true, mBgPaint);
+    }
+
+    private fun drawText(canvas: Canvas) {
+        val rect = mTextBounds
+        mTextPaint.getTextBounds(mText, 0, mText.length, rect)
+
+        val fontMetrics = mTextPaint.fontMetrics
+        val textTopMargin = (measuredHeight - rect.height() * mText.length) / 2F
+        // 计算文字baseline
+        val fontHeight = fontMetrics.bottom - fontMetrics.top
+        var textBaseY = rect.height() - (rect.height() - fontHeight) / 2 - fontMetrics.bottom + textTopMargin
+
+        val startX = measuredWidth - 20 - rect.width() / mText.length.toFloat()
+        mText.forEach {
+            canvas.drawText(it.toString(), startX, textBaseY, mTextPaint);
+            textBaseY += rect.height()
+        }
     }
 
     private class MeasureInfo {
