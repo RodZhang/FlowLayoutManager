@@ -4,7 +4,6 @@ import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.PagerSnapHelper
 import android.support.v7.widget.RecyclerView
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -14,11 +13,7 @@ import android.widget.TextView
 import com.rod.uidemo.R
 import com.scwang.smartrefresh.layout.util.DensityUtil
 import kotlinx.android.synthetic.main.fragment_horizontal_refresh.*
-import kotlinx.coroutines.experimental.android.UI
-import org.jetbrains.anko.AnkoComponent
-import org.jetbrains.anko.ems
 import org.jetbrains.anko.matchParent
-import org.jetbrains.anko.textView
 
 /**
  *

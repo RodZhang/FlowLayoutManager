@@ -3,15 +3,12 @@ package com.rod.uidemo.refresh
 import android.content.Context
 import android.graphics.Canvas
 import android.support.v4.view.NestedScrollingParent2
-import android.support.v4.view.NestedScrollingParentHelper
 import android.support.v4.view.ViewCompat
-import android.support.v4.view.ViewPager
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.MeasureSpec.*
 import android.view.ViewGroup
-import android.widget.Scroller
 import com.rod.uidemo.UL
 import com.scwang.smartrefresh.layout.util.DensityUtil
 
@@ -19,9 +16,9 @@ import com.scwang.smartrefresh.layout.util.DensityUtil
  * @author Rod
  * @date 2019/1/11
  */
-class HorizontalDragLayout @JvmOverloads constructor(context: Context,
-                                                     attrs: AttributeSet? = null,
-                                                     defStyleAttr: Int = 0)
+class HorizontalDragLayout
+@JvmOverloads
+constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
     : ViewGroup(context, attrs, defStyleAttr), NestedScrollingParent2 {
 
     companion object {
@@ -31,7 +28,7 @@ class HorizontalDragLayout @JvmOverloads constructor(context: Context,
 
     private val mMeasureInfo = MeasureInfo()
     private var mOffset = 0F
-//    private val mScrollHelper = NestedScrollingParentHelper(this)
+    private val mTouchInfo = TouchInfo()
 
     override fun onStartNestedScroll(child: View, target: View, axes: Int, type: Int): Boolean {
         UL.d(TAG, "onStartNestedScroll")
@@ -69,6 +66,36 @@ class HorizontalDragLayout @JvmOverloads constructor(context: Context,
     override fun onNestedPreScroll(target: View, dx: Int, dy: Int,
                                    consumed: IntArray, type: Int) {
         UL.d(TAG, "onNestedPreScroll")
+    }
+
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+        UL.d(TAG, "onInterceptTouchEvent")
+        requestDisallowInterceptTouchEvent(mTouchInfo.consumed)
+        return super.onInterceptTouchEvent(ev)
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        UL.d(TAG, "dispatchTouchEvent")
+        if (!mTouchInfo.consumed) {
+            when (ev.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    mTouchInfo.downX = ev.x
+                    mTouchInfo.downY = ev.y
+                    mTouchInfo.consumed = false
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    mTouchInfo.consumed = Math.abs(ev.x - mTouchInfo.downX) > Math.abs(ev.y - mTouchInfo.downY)
+                }
+            }
+        }
+        when (ev.action) {
+            MotionEvent.ACTION_CANCEL,
+            MotionEvent.ACTION_UP -> {
+                requestDisallowInterceptTouchEvent(false)
+                mTouchInfo.consumed = false
+            }
+        }
+        return super.dispatchTouchEvent(ev)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -156,4 +183,6 @@ class HorizontalDragLayout @JvmOverloads constructor(context: Context,
                     " mChildHeight=$mChildHeight)"
         }
     }
+
+    private data class TouchInfo(var downX: Float = 0F, var downY: Float = 0F, var consumed: Boolean = false)
 }
