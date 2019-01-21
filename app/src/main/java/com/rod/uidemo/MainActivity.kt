@@ -28,6 +28,12 @@ class MainActivity : AppCompatActivity() {
             verticalLayout {
                 orientation = LinearLayout.VERTICAL
 
+                button("status btn").onClick {
+                    startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, TestBtnStatusFragment::class.java.name)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, TestBtnStatusFragment.TAG))
+                }
+
                 button("Horizontal Refresh").onClick {
                     startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
                             .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, ViewPagerFragment::class.java.name)
