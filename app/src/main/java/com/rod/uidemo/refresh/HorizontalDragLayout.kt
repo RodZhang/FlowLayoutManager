@@ -2,6 +2,7 @@ package com.rod.uidemo.refresh
 
 import android.content.Context
 import android.graphics.*
+import android.os.Build
 import android.support.v4.view.NestedScrollingParent2
 import android.support.v4.view.ViewCompat
 import android.text.TextPaint
@@ -11,8 +12,11 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.MeasureSpec.*
 import android.view.ViewGroup
+import com.rod.uidemo.R
 import com.rod.uidemo.UL
 import com.scwang.smartrefresh.layout.util.DensityUtil
+
+
 
 /**
  * @author Rod
@@ -35,6 +39,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     private val mTextPaint = TextPaint()
     private val mBgPaint = Paint()
     private var mText = "继续左滑刷新"
+    private var mIconBmp: Bitmap?
 
     private val mTextBounds: Rect = Rect()
 
@@ -45,6 +50,22 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
         mBgPaint.isAntiAlias = true
         mBgPaint.color = Color.YELLOW
+        mIconBmp = getBitmap(context, R.mipmap.ic_launcher)
+    }
+
+    private fun getBitmap(context: Context, vectorDrawableId: Int): Bitmap? {
+        var bitmap: Bitmap? = null
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+            val vectorDrawable = context.getDrawable(vectorDrawableId)
+            bitmap = Bitmap.createBitmap(vectorDrawable!!.intrinsicWidth,
+                    vectorDrawable.intrinsicHeight, Bitmap.Config.ARGB_4444)
+            val canvas = Canvas(bitmap)
+            vectorDrawable.setBounds(0, 0, canvas.width, canvas.height)
+            vectorDrawable.draw(canvas)
+        } else {
+            bitmap = BitmapFactory.decodeResource(context.resources, vectorDrawableId)
+        }
+        return bitmap
     }
 
     override fun onStartNestedScroll(child: View, target: View, axes: Int, type: Int): Boolean {
@@ -59,7 +80,9 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     override fun onStopNestedScroll(target: View, type: Int) {
         UL.d(TAG, "onStopNestedScroll")
         mOffset = 0F
+        mRealOffset = 0F
         mMeasureInfo.mChildView?.translationX = mOffset
+        invalidate()
     }
 
     override fun onNestedScroll(target: View, dxConsumed: Int, dyConsumed: Int,
@@ -74,15 +97,16 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             }
             if (mOffset != 0F) {
                 var realOffset = mOffset * 3 / 5
-                realOffset = if (realOffset > MAX_OFFSET) {
+                var tOffset = realOffset
+                realOffset = if (realOffset > MAX_OFFSET / 2) {
                     mText = "松开刷新"
-                    MAX_OFFSET.toFloat()
+                    MAX_OFFSET / 2F
                 } else {
                     mText = "继续左滑刷新"
                     realOffset
                 }
                 mRealOffset = realOffset
-                mMeasureInfo.mChildView?.translationX = -realOffset
+                mMeasureInfo.mChildView?.translationX = -tOffset
                 invalidate()
             }
         }
@@ -176,14 +200,24 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         val childView = mMeasureInfo.mChildView
         if (changed && childView != null) {
-            childView.layout(left, top, right, bottom)
+            childView.layout(0, 0, measuredWidth, measuredHeight)
         }
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        drawIcon(canvas)
         drawBg(canvas)
         drawText(canvas)
+    }
+
+    private fun drawIcon(canvas: Canvas) {
+        val bmp = mIconBmp
+        bmp?.let {
+            val left = (measuredWidth - mRealOffset - 30).toFloat()
+            val top = (measuredHeight - bmp.height) / 2F
+            canvas.drawBitmap(mIconBmp, left, top, mBgPaint)
+        }
     }
 
     private fun drawBg(canvas: Canvas) {
@@ -201,7 +235,10 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         val fontHeight = fontMetrics.bottom - fontMetrics.top
         var textBaseY = rect.height() - (rect.height() - fontHeight) / 2 - fontMetrics.bottom + textTopMargin
 
-        val startX = measuredWidth - 20 - rect.width() / mText.length.toFloat()
+        var startX = measuredWidth - mRealOffset / 2
+        if (startX < measuredWidth - 20 - rect.width() / mText.length.toFloat()) {
+            startX = measuredWidth - 20 - rect.width() / mText.length.toFloat()
+        }
         mText.forEach {
             canvas.drawText(it.toString(), startX, textBaseY, mTextPaint);
             textBaseY += rect.height()

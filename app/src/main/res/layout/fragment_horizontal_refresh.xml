@@ -16,6 +16,9 @@
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:clipToPadding="false"
                 android:layout_height="120dp" />
 
         </com.rod.uidemo.refresh.HorizontalDragLayout>
