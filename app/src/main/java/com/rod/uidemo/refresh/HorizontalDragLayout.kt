@@ -29,28 +29,46 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
     companion object {
         private const val TAG = "HorizontalDragLayout"
-        private var MAX_OFFSET = DensityUtil.dp2px(80F)
+        private var MAX_OFFSET = DensityUtil.dp2px(50F)
     }
 
     private val mMeasureInfo = MeasureInfo()
-    private var mOffset = 0F
-    private var mRealOffset = 0F
     private val mTouchInfo = TouchInfo()
-    private val mTextPaint = TextPaint()
-    private val mBgPaint = Paint()
-    private var mText = "继续左滑刷新"
+
+    private var mBgIconStartOffset = DensityUtil.dp2px(8F)
+    private var mBgIconEndOffset = DensityUtil.dp2px(50F)
     private var mIconBmp: Bitmap?
 
+    private var mArcStartOffset = -DensityUtil.dp2px(4F)
+    private var mArcEndOffset = DensityUtil.dp2px(24F)
+    private val mCommonPaint = Paint()
+
+    private var mTextMaxRightOffset = DensityUtil.dp2px(4F)
+    private var mTextSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 10F, resources.displayMetrics)
+    private var mTextColor = Color.parseColor("#888888")
+    private var mTextPulling = "滑动更多"
+    private var mTextRelease = "松手查看"
     private val mTextBounds: Rect = Rect()
 
-    init {
-        mTextPaint.color = Color.BLACK
-        mTextPaint.textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14F, resources.displayMetrics)
-        mTextPaint.isAntiAlias = true;
+    private var mForeIcon: Bitmap?
+    private var mForeIconOffset = DensityUtil.dp2px(2F)
 
-        mBgPaint.isAntiAlias = true
-        mBgPaint.color = Color.YELLOW
-        mIconBmp = getBitmap(context, R.mipmap.ic_launcher)
+    private val mTextPaint = TextPaint()
+    private var mShowText = ""
+
+    private var mTotalOffset = 0F
+    private var mRealOffset = 0F
+    private var mDragRate = 0F;
+
+    init {
+        mTextPaint.isAntiAlias = true;
+        mTextPaint.textSize = mTextSize
+        mTextPaint.color = mTextColor
+
+        mCommonPaint.isAntiAlias = true
+        mCommonPaint.color = Color.parseColor("#fff6d1")
+        mIconBmp = getBitmap(context, R.mipmap.ic_hy_head)
+        mForeIcon = getBitmap(context, R.mipmap.ic_hy_hands)
     }
 
     private fun getBitmap(context: Context, vectorDrawableId: Int): Bitmap? {
@@ -79,9 +97,10 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
     override fun onStopNestedScroll(target: View, type: Int) {
         UL.d(TAG, "onStopNestedScroll")
-        mOffset = 0F
+        mTotalOffset = 0F
         mRealOffset = 0F
-        mMeasureInfo.mChildView?.translationX = mOffset
+        mDragRate = 0F
+        mMeasureInfo.mChildView?.translationX = 0F
         invalidate()
     }
 
@@ -91,22 +110,25 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
         if (type == ViewCompat.TYPE_TOUCH) {
             if (dxUnconsumed > 0) {
-                mOffset += dxUnconsumed
-            } else if (mOffset > 0) {
-                mOffset += dxConsumed
+                if (mRealOffset >= MAX_OFFSET) {
+                    return
+                }
+                mTotalOffset += dxUnconsumed
+            } else if (mTotalOffset > 0) {
+                mTotalOffset += dxConsumed
             }
-            if (mOffset != 0F) {
-                var realOffset = mOffset * 3 / 5
-                var tOffset = realOffset
-                realOffset = if (realOffset > MAX_OFFSET / 2) {
-                    mText = "松开刷新"
-                    MAX_OFFSET / 2F
+            if (mTotalOffset != 0F) {
+                var realOffset = mTotalOffset * 0.5F
+                realOffset = if (realOffset > MAX_OFFSET) {
+                    mShowText = mTextRelease
+                    MAX_OFFSET.toFloat()
                 } else {
-                    mText = "继续左滑刷新"
+                    mShowText = mTextPulling
                     realOffset
                 }
                 mRealOffset = realOffset
-                mMeasureInfo.mChildView?.translationX = -tOffset
+                mDragRate = mRealOffset / MAX_OFFSET
+                mMeasureInfo.mChildView?.translationX = -realOffset
                 invalidate()
             }
         }
@@ -208,38 +230,63 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         super.onDraw(canvas)
         drawIcon(canvas)
         drawBg(canvas)
+        drawForegroundIcon(canvas)
         drawText(canvas)
     }
 
     private fun drawIcon(canvas: Canvas) {
         val bmp = mIconBmp
         bmp?.let {
-            val left = (measuredWidth - mRealOffset - 30).toFloat()
+            val offset = mBgIconStartOffset + (mBgIconEndOffset - mBgIconStartOffset) * mDragRate
+            val left = (measuredWidth - offset).toFloat()
             val top = (measuredHeight - bmp.height) / 2F
-            canvas.drawBitmap(mIconBmp, left, top, mBgPaint)
+            canvas.drawBitmap(bmp, left, top, mCommonPaint)
         }
     }
 
     private fun drawBg(canvas: Canvas) {
-        val oval = RectF((measuredWidth - mRealOffset).toFloat(), y, (measuredWidth + mRealOffset).toFloat(), measuredHeight.toFloat())
-        canvas.drawArc(oval, -90F, -180F, true, mBgPaint);
+        val offset = mArcStartOffset + (mArcEndOffset - mArcStartOffset) * mDragRate
+        if (offset <= 0) {
+            return
+        }
+        val oval = RectF((measuredWidth - offset).toFloat(), y, (measuredWidth + offset).toFloat(), measuredHeight.toFloat())
+        canvas.drawArc(oval, -90F, -180F, true, mCommonPaint);
+    }
+
+    private fun drawForegroundIcon(canvas: Canvas) {
+        val bmp = mForeIcon
+        bmp?.let {
+            val offset = mArcStartOffset + (mArcEndOffset - mArcStartOffset) * mDragRate
+            val left = (measuredWidth - offset - bmp.width / 4).toFloat()
+            val top = (measuredHeight - bmp.height) / 2F
+            canvas.drawBitmap(bmp, left, top, mCommonPaint)
+        }
     }
 
     private fun drawText(canvas: Canvas) {
+        val arcOffset = mArcStartOffset + (mArcEndOffset - mArcStartOffset) * mDragRate
+        if (arcOffset <= 0) {
+            return
+        }
+
         val rect = mTextBounds
-        mTextPaint.getTextBounds(mText, 0, mText.length, rect)
+        mTextPaint.getTextBounds(mShowText, 0, mShowText.length, rect)
 
         val fontMetrics = mTextPaint.fontMetrics
-        val textTopMargin = (measuredHeight - rect.height() * mText.length) / 2F
+        val textTopMargin = (measuredHeight - rect.height() * mShowText.length) / 2F
         // 计算文字baseline
         val fontHeight = fontMetrics.bottom - fontMetrics.top
         var textBaseY = rect.height() - (rect.height() - fontHeight) / 2 - fontMetrics.bottom + textTopMargin
 
-        var startX = measuredWidth - mRealOffset / 2
-        if (startX < measuredWidth - 20 - rect.width() / mText.length.toFloat()) {
-            startX = measuredWidth - 20 - rect.width() / mText.length.toFloat()
+        val singleTextWidth = rect.width() / mShowText.length.toFloat()
+        val endOffset = measuredWidth - (singleTextWidth + mTextMaxRightOffset)
+
+        var startX = measuredWidth - arcOffset + (mArcEndOffset - singleTextWidth) / 2
+
+        if (startX < endOffset) {
+            startX = endOffset
         }
-        mText.forEach {
+        mShowText.forEach {
             canvas.drawText(it.toString(), startX, textBaseY, mTextPaint);
             textBaseY += rect.height()
         }
