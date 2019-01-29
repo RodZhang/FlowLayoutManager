@@ -58,10 +58,10 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
     private var mTotalOffset = 0F
     private var mRealOffset = 0F
-    private var mDragRate = 0F;
+    private var mDragRate = 0F
 
     init {
-        mTextPaint.isAntiAlias = true;
+        mTextPaint.isAntiAlias = true
         mTextPaint.textSize = mTextSize
         mTextPaint.color = mTextColor
 
@@ -72,7 +72,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     }
 
     private fun getBitmap(context: Context, vectorDrawableId: Int): Bitmap? {
-        var bitmap: Bitmap? = null
+        val bitmap: Bitmap?
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
             val vectorDrawable = context.getDrawable(vectorDrawableId)
             bitmap = Bitmap.createBitmap(vectorDrawable!!.intrinsicWidth,
@@ -238,7 +238,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         val bmp = mIconBmp
         bmp?.let {
             val offset = mBgIconStartOffset + (mBgIconEndOffset - mBgIconStartOffset) * mDragRate
-            val left = (measuredWidth - offset).toFloat()
+            val left = measuredWidth - offset
             val top = (measuredHeight - bmp.height) / 2F
             canvas.drawBitmap(bmp, left, top, mCommonPaint)
         }
@@ -249,15 +249,15 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         if (offset <= 0) {
             return
         }
-        val oval = RectF((measuredWidth - offset).toFloat(), y, (measuredWidth + offset).toFloat(), measuredHeight.toFloat())
-        canvas.drawArc(oval, -90F, -180F, true, mCommonPaint);
+        val oval = RectF(measuredWidth - offset, y, measuredWidth + offset, measuredHeight.toFloat())
+        canvas.drawArc(oval, -90F, -180F, true, mCommonPaint)
     }
 
     private fun drawForegroundIcon(canvas: Canvas) {
         val bmp = mForeIcon
         bmp?.let {
             val offset = mArcStartOffset + (mArcEndOffset - mArcStartOffset) * mDragRate
-            val left = (measuredWidth - offset - bmp.width / 4).toFloat()
+            val left = measuredWidth - offset - mForeIconOffset
             val top = (measuredHeight - bmp.height) / 2F
             canvas.drawBitmap(bmp, left, top, mCommonPaint)
         }
@@ -287,7 +287,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             startX = endOffset
         }
         mShowText.forEach {
-            canvas.drawText(it.toString(), startX, textBaseY, mTextPaint);
+            canvas.drawText(it.toString(), startX, textBaseY, mTextPaint)
             textBaseY += rect.height()
         }
     }
@@ -297,12 +297,12 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         internal var mWidthSpecSize = 0
         internal var mHeightSpecMode = 0
         internal var mHeightSpecSize = 0
-        internal var mMeasuredWidthSize = 0;
-        internal var mMeasuredHeightSize = 0;
+        internal var mMeasuredWidthSize = 0
+        internal var mMeasuredHeightSize = 0
         internal var mChildView: View? = null
-        internal var mChildCount = 0;
-        internal var mChildWidth = 0;
-        internal var mChildHeight = 0;
+        internal var mChildCount = 0
+        internal var mChildWidth = 0
+        internal var mChildHeight = 0
 
         override fun toString(): String {
             return "MeasureInfo(mWidthSpecMode=$mWidthSpecMode," +
