@@ -11,6 +11,7 @@ import com.rod.uidemo.flowlayout.FlowLayoutActivity2
 import com.rod.uidemo.hotsearch.HotSearchActivity
 import com.rod.uidemo.refresh.HorizontalRefreshFragment
 import com.rod.uidemo.refresh.ViewPagerFragment
+import com.rod.uidemo.server.IPCClientFragment
 import com.rod.uidemo.sticky.StickyActivity
 import com.rod.uidemo.test.RefreshFragment
 import com.rod.uidemo.test.TestLayoutAnimFragment
@@ -27,6 +28,12 @@ class MainActivity : AppCompatActivity() {
         scrollView {
             verticalLayout {
                 orientation = LinearLayout.VERTICAL
+
+                button("ipc btn").onClick {
+                    startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, IPCClientFragment::class.java.name)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, IPCClientFragment.TAG))
+                }
 
                 button("status btn").onClick {
                     startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
