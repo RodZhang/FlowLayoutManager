@@ -1,8 +1,8 @@
 package com.rod.uidemo
 
+import org.junit.Assert.assertEquals
 import org.junit.Test
-
-import org.junit.Assert.*
+import java.util.concurrent.locks.ReentrantLock
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -54,6 +54,88 @@ class ExampleUnitTest {
                     }
                     pre.wait()
                 }
+            }
+        }
+    }
+
+    @Test
+    fun printAbcByReentrantLock() {
+
+        val printer = PrintCondition()
+        Thread() {
+            kotlin.run {
+                (0 until 10).forEach {
+                    printer.printA()
+                }
+            }
+        }.start()
+        Thread() {
+            kotlin.run {
+                (0 until 10).forEach {
+                    printer.printB()
+                }
+            }
+        }.start()
+        Thread() {
+            kotlin.run {
+                (0 until 10).forEach {
+                    printer.printC()
+                }
+            }
+        }.start()
+
+        Thread.sleep(3000)
+    }
+
+    class PrintCondition {
+        private val lock = ReentrantLock()
+        private val condA = lock.newCondition()
+        private val condB = lock.newCondition()
+        private val condC = lock.newCondition()
+        private var curCond = condA
+
+        fun printA() {
+            try {
+                lock.lock()
+                while (curCond != condA) {
+                    condA.await()
+                }
+
+                print("A")
+                curCond = condB
+                condB.signal()
+            } finally {
+                lock.unlock()
+            }
+        }
+
+        fun printB() {
+            try {
+                lock.lock()
+                while (curCond != condB) {
+                    condB.await()
+                }
+
+                print("B")
+                curCond = condC
+                condC.signal()
+            } finally {
+                lock.unlock()
+            }
+        }
+
+        fun printC() {
+            try {
+                lock.lock()
+                while (curCond != condC) {
+                    condC.await()
+                }
+
+                print("C")
+                curCond = condA
+                condA.signal()
+            } finally {
+                lock.unlock()
             }
         }
     }
