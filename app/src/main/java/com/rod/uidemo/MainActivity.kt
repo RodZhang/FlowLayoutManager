@@ -9,6 +9,7 @@ import android.widget.LinearLayout
 import com.rod.uidemo.flow.FlowLayoutActivity
 import com.rod.uidemo.flowlayout.FlowLayoutActivity2
 import com.rod.uidemo.hotsearch.HotSearchActivity
+import com.rod.uidemo.mokelocation.MockLocationFragment
 import com.rod.uidemo.refresh.HorizontalRefreshFragment
 import com.rod.uidemo.refresh.ViewPagerFragment
 import com.rod.uidemo.server.IPCClientFragment
@@ -28,6 +29,12 @@ class MainActivity : AppCompatActivity() {
         scrollView {
             verticalLayout {
                 orientation = LinearLayout.VERTICAL
+
+                button("mock location").onClick {
+                    startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, MockLocationFragment::class.java.name)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, MockLocationFragment.TAG))
+                }
 
                 button("ipc btn").onClick {
                     startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
