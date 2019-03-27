@@ -2,15 +2,15 @@ package com.rod.uidemo
 
 import android.app.Activity
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
-import android.support.v4.content.ContextCompat.startActivity
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.widget.LinearLayout
 import com.rod.uidemo.flow.FlowLayoutActivity
 import com.rod.uidemo.flowlayout.FlowLayoutActivity2
 import com.rod.uidemo.hotsearch.HotSearchActivity
 import com.rod.uidemo.mokelocation.MockLocationFragment
-import com.rod.uidemo.refresh.HorizontalRefreshFragment
 import com.rod.uidemo.refresh.ViewPagerFragment
 import com.rod.uidemo.server.IPCClientFragment
 import com.rod.uidemo.sticky.StickyActivity
@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("Lifecycle", "MainActivity, onCreate")
         scrollView {
             verticalLayout {
                 orientation = LinearLayout.VERTICAL
@@ -99,5 +100,56 @@ class MainActivity : AppCompatActivity() {
 
     private fun simpleStartActivity(activityClass: Class<out Activity>) {
         startActivity(Intent(this, activityClass))
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+        Log.d("Lifecycle", "MainActivity, onRestoreInstanceState")
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        Log.d("Lifecycle", "MainActivity, onStart")
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+
+        Log.d("Lifecycle", "MainActivity, onRestart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        Log.d("Lifecycle", "MainActivity, onResume")
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        Log.d("Lifecycle", "MainActivity, onPause")
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+
+        Log.d("Lifecycle", "MainActivity, onSaveInstanceState")
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        Log.d("Lifecycle", "MainActivity, onStop")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("Lifecycle", "MainActivity, onDestroy")
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        Log.d("Lifecycle", "MainActivity, onConfigurationChanged")
     }
 }
