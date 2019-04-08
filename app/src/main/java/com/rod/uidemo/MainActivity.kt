@@ -16,6 +16,7 @@ import com.rod.uidemo.server.IPCClientFragment
 import com.rod.uidemo.sticky.StickyActivity
 import com.rod.uidemo.test.RefreshFragment
 import com.rod.uidemo.test.TestLayoutAnimFragment
+import com.rod.uidemo.testtouch.TestTouchFragment
 import com.rod.uidemo.touch.TestClickDelegateFragment
 import org.jetbrains.anko.button
 import org.jetbrains.anko.scrollView
@@ -30,6 +31,12 @@ class MainActivity : AppCompatActivity() {
         scrollView {
             verticalLayout {
                 orientation = LinearLayout.VERTICAL
+
+                button("test touch").onClick {
+                    startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, TestTouchFragment::class.java.name)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, TestTouchFragment.TAG))
+                }
 
                 button("mock location").onClick {
                     startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
