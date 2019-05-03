@@ -3,6 +3,8 @@ package com.rod.uidemo;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.Arrays;
+
 /**
  * @author Rod
  * @date 2019/3/8
@@ -13,6 +15,8 @@ public class Book implements Parcelable {
 
     public Book(String name) {
         this.name = name;
+        int[] arr = new int[3];
+        Arrays.sort(arr);
     }
 
     @Override
