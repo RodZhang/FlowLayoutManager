@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.rod.uidemo.touch.TouchTraceView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.rod.uidemo.touch.TouchTraceView
+        android:id="@+id/trace1"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@color/colorAccent"
+        android:orientation="vertical">
+
+        <com.rod.uidemo.touch.TouchTraceView
+            android:id="@+id/trace3"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="#1afafa">
+        </com.rod.uidemo.touch.TouchTraceView>
+
+        <com.rod.uidemo.touch.TouchTraceView
+            android:id="@+id/trace4"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="#dafafa">
+        </com.rod.uidemo.touch.TouchTraceView>
+    </com.rod.uidemo.touch.TouchTraceView>
+
+    <com.rod.uidemo.touch.TouchTraceView
+        android:id="@+id/trace2"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorPrimary"/>
+</com.rod.uidemo.touch.TouchTraceView>
