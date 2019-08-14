@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.rod.uidemo.textclock.TextClockView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mClockView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+</com.rod.uidemo.textclock.TextClockView>

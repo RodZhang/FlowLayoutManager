@@ -19,6 +19,7 @@ import com.rod.uidemo.sticky.StickyActivity
 import com.rod.uidemo.test.RefreshFragment
 import com.rod.uidemo.test.TestLayoutAnimFragment
 import com.rod.uidemo.testtouch.TestTouchFragment
+import com.rod.uidemo.textclock.TextClockFragment
 import com.rod.uidemo.touch.TestClickDelegateFragment
 import com.rod.uidemo.touch.TestTouchDispatch
 import org.jetbrains.anko.button
@@ -34,6 +35,12 @@ class MainActivity : AppCompatActivity() {
         scrollView {
             verticalLayout {
                 orientation = LinearLayout.VERTICAL
+
+                button("text clock").onClick {
+                    startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, TextClockFragment::class.java.name)
+                            .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, TextClockFragment.TAG))
+                }
 
                 button("test touch trace").onClick {
                     startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
