@@ -8,22 +8,51 @@
         android:id="@+id/bind_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="bind"/>
+        android:text="bind" />
 
     <Button
         android:id="@+id/unbind_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="unbind"/>
+        android:text="unbind" />
 
     <Button
         android:id="@+id/get_book_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="get book"/>
+        android:text="get book" />
 
     <TextView
         android:id="@+id/info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/max_layer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:textSize="30sp" />
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="hehe"/>
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="flakdflakflk"/>
+            </FrameLayout>
+        </FrameLayout>
+    </FrameLayout>
 </LinearLayout>

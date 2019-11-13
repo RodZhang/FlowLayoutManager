@@ -1,5 +1,6 @@
 package com.rod.uidemo.server;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -19,7 +20,9 @@ import com.rod.uidemo.Book;
 import com.rod.uidemo.IBookController;
 import com.rod.uidemo.R;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 /**
  * @author Rod
@@ -31,6 +34,7 @@ public class IPCClientFragment extends Fragment {
     private IBookController mBookController;
     private boolean mIsConnected;
     private TextView mInfoText;
+    private TextView mMaxLayer;
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -86,5 +90,40 @@ public class IPCClientFragment extends Fragment {
                 mInfoText.setText("connect service first");
             }
         });
+
+        mMaxLayer = view.findViewById(R.id.max_layer);
+        calculateLayer();
+    }
+
+    private void calculateLayer() {
+        Activity activity = getActivity();
+        View decorView = activity.getWindow().getDecorView();
+        int maxLayer = getMaxLayer((ViewGroup) decorView);
+        mMaxLayer.setText(String.valueOf(maxLayer));
+    }
+
+    private int getMaxLayer(ViewGroup parent) {
+        Queue<View> queue = new LinkedList<>();
+        queue.add(parent);
+        int layer = 0;
+        View view;
+        ViewGroup viewGroup;
+        int childCount;
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+
+            for (int i = 0; i < size; i++) {
+                view = queue.poll();
+                if (view instanceof ViewGroup) {
+                    viewGroup = (ViewGroup) view;
+                    childCount = viewGroup.getChildCount();
+                    for (int j = 0; j < childCount; j++) {
+                        queue.offer(viewGroup.getChildAt(j));
+                    }
+                }
+            }
+            layer++;
+        }
+        return layer;
     }
 }

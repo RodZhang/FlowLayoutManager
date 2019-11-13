@@ -39,6 +39,8 @@
             android:screenOrientation="portrait" />
         <activity android:name=".hotsearch.HotSearchActivity"
             android:theme="@style/AppTheme.NoActionBar"/>
+        <activity android:name=".sweepback.SweepBackActivity"
+            android:theme="@style/TransparentTheme"/>
 
         <service android:name=".server.IPCService"
             android:process="com.rod.uidemo.server"/>

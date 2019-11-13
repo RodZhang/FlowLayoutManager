@@ -38,16 +38,7 @@ class MainActivity : AppCompatActivity() {
             verticalLayout {
                 orientation = LinearLayout.VERTICAL
 
-                button("test AsyncTask").onClick {
-                    startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
-                                          .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, TestAsyncTaskFragment::class.java.name)
-                                          .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, TestViewFragment.TAG))
-                }
-
-                button("test sweep back").onClick {
-                    startActivity(Intent(this@MainActivity, SweepBackActivity::class.java))
-                }
-
+<<<<<<< HEAD
                 button("text clock").onClick {
                     startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
                             .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, TextClockFragment::class.java.name)
@@ -64,6 +55,16 @@ class MainActivity : AppCompatActivity() {
                     startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
                             .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, TestPermission::class.java.name)
                             .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, TestPermission.TAG))
+=======
+                button("test AsyncTask").onClick {
+                    startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
+                                          .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, TestAsyncTaskFragment::class.java.name)
+                                          .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, TestViewFragment.TAG))
+                }
+
+                button("test sweep back").onClick {
+                    startActivity(Intent(this@MainActivity, SweepBackActivity::class.java))
+>>>>>>> update
                 }
 
                 button("test view").onClick {
