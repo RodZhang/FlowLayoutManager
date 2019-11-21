@@ -11,20 +11,14 @@ import android.widget.FrameLayout
  * @author Rod
  * @date 2019/4/8
  */
-class TestTouchView
+class TestTouchItemView
 @JvmOverloads constructor(context: Context, attributes: AttributeSet? = null, style: Int = 0) :
         FrameLayout(context, attributes, style) {
     private var mPointer1: MotionEvent.PointerCoords? = null
     private var mPointer2: MotionEvent.PointerCoords? = null
 
     companion object {
-        const val TAG = "TestTouchView"
-    }
-
-    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        val result = super.onInterceptTouchEvent(ev)
-        Log.d(TAG, "onInterceptTouchEvent: $result")
-        return result
+        const val TAG = "TestTouchItemView"
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
