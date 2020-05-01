@@ -15,6 +15,7 @@ import com.rod.uidemo.mokelocation.MockLocationFragment
 import com.rod.uidemo.permission.TestPermission
 import com.rod.uidemo.refresh.ViewPagerFragment
 import com.rod.uidemo.server.IPCClientFragment
+import com.rod.uidemo.sticky.RVStickyFragment
 import com.rod.uidemo.sticky.StickyActivity
 import com.rod.uidemo.sweepback.SweepBackActivity
 import com.rod.uidemo.test.RefreshFragment
@@ -36,12 +37,22 @@ class MainActivity : AppCompatActivity() {
         Log.d("Lifecycle", "MainActivity, onCreate")
         scrollView {
             verticalLayout {
+                id = R.id.empty_view
                 orientation = LinearLayout.VERTICAL
 
-                button("test AsyncTask").onClick {
+                button("test recyclerView sticky").onClick {
                     startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
-                                          .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, TestAsyncTaskFragment::class.java.name)
-                                          .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, TestViewFragment.TAG))
+                                          .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, RVStickyFragment::class.java.name)
+                                          .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, RVStickyFragment.TAG))
+                }
+
+                button("test AsyncTask").onClick {
+                    supportFragmentManager.beginTransaction()
+                            .add(id, TestLifeCycleFragment())
+                            .commit()
+//                    startActivity(Intent(this@MainActivity, FragmentHostActivity::class.java)
+//                                          .putExtra(FragmentHostActivity.ARGS_FRAGMENT_NAME, TestAsyncTaskFragment::class.java.name)
+//                                          .putExtra(FragmentHostActivity.ARGS_FRAGMENT_TAG, TestViewFragment.TAG))
                 }
 
                 button("test sweep back").onClick {
